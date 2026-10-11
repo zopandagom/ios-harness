@@ -39,13 +39,17 @@ if ((${#checks[@]} == 0)); then
   exit 0
 fi
 
+# 실패하면 원인을 다시 볼 수 있게 로그를 남긴다. PASS 일 때만 지운다.
 log=$(mktemp "${TMPDIR:-/tmp}/verify-head.XXXXXX")
-trap 'rm -f "$log"' EXIT
 for check in "${checks[@]}"; do
   if ! bash -c "$check" >>"$log" 2>&1; then
     echo "FAIL  $subject ($check)"
-    grep -E 'error|✖|failed|Error|FAIL' "$log" | head -10 | sed 's/^/      /'
+    # xcbeautify 는 컴파일 에러를 ❌ 로 시작하는 줄로 바꾼다
+    matched=$(grep -E '❌|error|✖|failed|Error|FAIL' "$log" | head -10)
+    sed 's/^/      /' <<<"${matched:-$(tail -20 "$log")}"
+    echo "      전체 로그: $log"
     exit 1
   fi
 done
+rm -f "$log"
 echo "PASS  $subject (${checks[*]})"
