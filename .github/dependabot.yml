@@ -1,0 +1,12 @@
+version: 2
+updates:
+  # 하네스 레포 자체의 워크플로
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+  # 생성되는 프로젝트의 워크플로 (template/.github)
+  - package-ecosystem: github-actions
+    directory: /template
+    schedule:
+      interval: monthly

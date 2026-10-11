@@ -1,0 +1,14 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "ios-harness",
+  "description": "iOS 앱 프로젝트 하네스 템플릿",
+  "owner": { "name": "zopandagom" },
+  "plugins": [
+    {
+      "name": "ios-harness",
+      "description": "새 iOS 앱 프로젝트를 하네스·CI 까지 갖춰 생성하는 /ios-harness:new-ios-app 스킬",
+      "source": "./",
+      "category": "development"
+    }
+  ]
+}

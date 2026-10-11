@@ -1,0 +1,27 @@
+# __DISPLAY_NAME__
+
+<!-- new-ios-app: 앱 설명 한두 문장과 핵심 약속을 적고 이 주석을 지운다 -->
+
+## 핵심 기능 (MVP)
+<!-- new-ios-app: DEVELOPMENT_PLAN 의 MVP 기능을 목록으로 요약하고 이 주석을 지운다 -->
+
+## 기술 스택
+- SwiftUI (규칙 기반 단방향 MV), Swift 6 strict concurrency, iOS __IOS_VERSION__+
+- Tuist 모듈러 아키텍처 (Feature / Client Interface·Impl·Testing / Shared)
+<!-- new-ios-app: 앱이 쓸 Apple 프레임워크를 줄로 추가하고 이 주석을 지운다 -->
+
+## 시작하기
+```bash
+make bootstrap   # mise 로 tuist·swiftlint·swiftformat·xcbeautify 설치, git 훅(pre-commit lint, pre-push main 차단) 연결
+make generate    # __APP_NAME__.xcworkspace 생성 후 Xcode 로 열기
+make test        # 전체 모듈 빌드 + 테스트
+make lint        # 포맷·아키텍처 규칙 검사 (make format 으로 자동 수정)
+```
+
+## 문서
+- [아키텍처](docs/ARCHITECTURE.md)
+- [개발 규칙: 해야 할 것 / 하지 말아야 할 것](docs/CONVENTIONS.md)
+- [개발 계획과 로드맵](docs/DEVELOPMENT_PLAN.md)
+- [Claude Code 작업 안내](CLAUDE.md)
+
+이 프로젝트는 [ios-harness](https://github.com/zopandagom/ios-harness) 템플릿으로 만들었다 (`.harness-version`).
