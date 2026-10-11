@@ -109,7 +109,7 @@ flowchart TD
 | Feature Tests / Example | 자기 Feature | ✅ | ❌ | ✅ | ✅ |
 | Client Interface | ❌ | ❌ | ❌ | ❌ | ✅ |
 | Client Impl | ❌ | 자기 Interface (+ 다른 Interface) | ❌ | ❌ | ✅ |
-| Client Tests | ❌ | ✅ | 자기 Impl | 자기 Testing | ✅ |
+| Client Tests | ❌ | ✅ | 자기 Impl | 자기 Testing (+ Impl 이 쓰는 다른 Client 의 Testing) | ✅ |
 | Shared | ❌ | ❌ | ❌ | ❌ | ❌ (필요해지면 템플릿에 인자를 추가하고 연다) |
 
 ### 빌드 설정
@@ -129,6 +129,7 @@ flowchart TD
 
    let project = Project.client(.notification, shared: [.core])
    ```
+   Impl 이 다른 Client 를 조합하면 `clients: [.storage, …]` 를 더한다. Impl 에는 그 Interface 가, Tests 에는 Interface 와 Testing(Fake)이 연결된다.
 3. Interface 에 `public protocol NotificationClient: Sendable` 과 입출력 값 타입, Impl 에 `NotificationClientImpl`, Testing 에 `NotificationClientFake`, Tests 에 Impl 의 순수 로직 테스트.
 4. 사용하는 Feature 매니페스트의 `clients:` 에 추가하고, App 매니페스트에 `.client(impl: .notification)` 추가.
 5. `make project && make test`.
