@@ -21,7 +21,7 @@ gh pr list --head "$(git branch --show-current)" --state open --json number,url
 ```
 - 커밋되지 않은 변경이 있으면 중단하고 "커밋이 필요합니다 (/micro-commit 지시 필요)"라고 보고한다. 직접 커밋하지 않는다.
 - origin/main 이후 커밋이 없으면 중단한다.
-- `gh pr list` 에 PR 이 있으면 **열린 PR 모드**(§5), `[]` 면 새 PR 모드다. `gh pr list` 자체가 실패하면 멈추고 보고한다.
+- `gh pr list` 에 PR 이 있으면 **열린 PR 모드**, `[]` 면 새 PR 모드다. 두 모드 모두 §2 를 거치고, 열린 PR 모드는 §3·§4 를 건너뛰어 §5 "열린 PR 모드"로 push 한다. `gh pr list` 자체가 실패하면 멈추고 보고한다.
 
 ## 2. 검증과 리뷰 (동시에)
 1. 검증을 Bash `run_in_background: true`, `timeout: 1800000`(30분)으로 띄운다. 템플릿 생성 후 클린 빌드·테스트라 수 분 걸린다.
