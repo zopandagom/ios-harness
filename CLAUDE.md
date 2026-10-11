@@ -6,6 +6,14 @@
 - `template/` — 생성될 프로젝트 원본. 그 안의 `CLAUDE.md`·`.claude/`·`docs/` 는 **생성될 프로젝트용**이다. 이 레포 작업 규칙으로 읽지 않는다.
 - `scripts/new-app.sh` — 복사 + 토큰 치환 + `>>> no-network` 블록 처리 + `.harness-version` 기록.
 - `skills/new-ios-app/SKILL.md` — 입력 받기 → 생성 → 문서 채우기 → 검증 → 레포 생성.
+- `.claude/skills/` — **이 레포 작업용** 스킬 (`/micro-commit`, `/pr`). 플러그인으로 배포되지 않는다.
+
+## 작업 흐름
+1. `feat|fix|chore/<요약>` 브랜치에서 작업한다. main 에 직접 커밋·push 하지 않는다.
+2. 템플릿·스크립트를 바꿨으면 `scripts/test-template.sh` 로 확인한다.
+3. `/micro-commit` — **사용자가 지시할 때만.** 목적별 커밋만 한다 (서브에이전트).
+4. `/pr [draft]` — **사용자가 지시할 때만.** 마지막 커밋 검증(`verify-head.sh`: 템플릿 테스트·버전 확인·JSON/YAML/셸 문법) + 레포 규칙 리뷰 → PR. 실패·지적이 있으면 멈춘다.
+- 커밋 서명 줄은 `Co-Authored-By: Claude Code <noreply@anthropic.com>` 이다.
 
 ## 규칙
 - 템플릿을 바꾸면 `scripts/test-template.sh` 로 확인한다 (샘플 앱 생성 → `make lint` → `make test`). CI 의 `Template` 워크플로도 같은 스크립트를 쓴다.
