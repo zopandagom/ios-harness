@@ -8,7 +8,7 @@
 | 프로젝트 구조 | Tuist 모듈러 아키텍처: `App`(조립 지점) · `Features/Home`(Model + View + Tests + Example 앱) · `Shared/Core`. Client(Interface / Impl / Testing) 추가 템플릿 |
 | 아키텍처 규칙 | 규칙 기반 단방향 MV (`@Observable` Model, `private(set)` 상태, 이벤트 메서드), Swift 6 strict concurrency. SwiftLint custom rules 로 모듈 경계 강제 |
 | 도구 | mise 로 버전 고정한 Tuist · SwiftLint · SwiftFormat · xcbeautify, `Makefile` (`bootstrap` `generate` `lint` `format` `test`) |
-| Claude Code 하네스 | 스킬 `/verify` `/arch-review` `/micro-commit` `/pr`, 훅(main 직접 커밋·push 차단, Swift 자동 포맷, 고친 파일을 언급하는 문서 알림), 권한 설정 |
+| Claude Code 하네스 | 스킬 `/verify` `/arch-review` `/micro-commit` `/pr`, 훅(main 직접 커밋·push 차단, Swift 자동 포맷, 고친 파일을 언급하는 문서 알림), 권한 설정. 리뷰 기준·지적 처리 규칙(로컬·CI 리뷰 공통, `/pr` 이 CI 지적을 모아 답한다)과 팀 구현 흐름(설계자·비판자·구현자·대조자) |
 | git 훅 | pre-commit lint, pre-push main 차단 |
 | GitHub | CI(Ubuntu lint + 줄 단위 어노테이션, macOS 빌드·테스트 + PR 코멘트 요약, `ci-result` 집계 체크), Claude Review 워크플로, PR 템플릿, Dependabot. 생성 시 머지 방식·유형 라벨·main 룰셋까지 설정 |
 | 문서 | `CLAUDE.md`, `docs/ARCHITECTURE.md` · `CONVENTIONS.md` · `DEVELOPMENT_PLAN.md` — 앱 설명으로 제품 부분을 채운다 |
@@ -30,6 +30,7 @@
 1. **Claude GitHub App** 을 새 레포에 설치 (모든 레포에 설치했다면 생략)
 2. **`CLAUDE_CODE_OAUTH_TOKEN` 시크릿**: `claude setup-token` → `gh secret set CLAUDE_CODE_OAUTH_TOKEN --repo <owner/repo>`
 3. 실기기에서 돌리기 전에 `Env.developmentTeam` 에 팀 ID 입력
+4. (선택) 팀 구현(CONVENTIONS §6)을 Agent Teams 로 하려면 Claude Code 사용자 설정에 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. 없으면 서브에이전트로 대신한다
 
 ### 스크립트만 쓰기
 ```bash
