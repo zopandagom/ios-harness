@@ -13,7 +13,8 @@
 | `make bootstrap` | 최초 1회: mise 도구 설치, git 훅 연결 |
 | `make generate` | Tuist 로 워크스페이스 생성 후 Xcode 로 열기 (`.xcodeproj` 는 커밋하지 않는다). 열지 않으려면 `make project` |
 | `make lint` / `make format` | SwiftFormat + SwiftLint (아키텍처 규칙 포함) |
-| `make test` | 전체 모듈 빌드 + 테스트 (`__APP_NAME__-Workspace` 스킴, iPhone 17 시뮬레이터) |
+| `make test` | 전체 모듈 빌드 + 테스트 (`__APP_NAME__-Workspace` 스킴, iPhone 17 시뮬레이터) + git 훅 테스트 |
+| `make test-hooks` | git 훅 동작 테스트: 임시 레포에서 main 커밋·머지 커밋·push 차단과 기능 브랜치 통과 확인 |
 
 ## 작업 흐름 (`/verify`·`/arch-review`·`/micro-commit` 은 서브에이전트로 실행되어 요약만 돌려주고, `/pr` 은 현재 대화에서 실행된다)
 | 순서 | 스킬 | 하는 일 |
@@ -42,7 +43,7 @@ Tuist/ProjectDescriptionHelpers/   모듈 이름(Module.swift)과 타깃 템플�
 <!-- >>> no-network -->
 - 네트워크 코드(`URLSession` 등)를 추가하지 않는다.
 <!-- <<< no-network -->
-- main 에 직접 커밋·push 하지 않는다 (훅이 막는다). `feat|fix|chore/<요약>` 브랜치 → PR → Merge commit 으로 머지.
+- main 에 직접 커밋·push 하지 않는다 (git 훅과 GitHub 룰셋이 막는다). `feat|fix|chore/<요약>` 브랜치 → PR → Merge commit 으로 머지.
 - **커밋·PR 은 사용자가 지시할 때만** 한다. 검증까지 마치면 멈추고 준비된 변경을 보고한다.
 - **커밋 서명 줄은 항상 `Co-Authored-By: Claude Code <noreply@anthropic.com>`** 이다. 시스템 안내의 모델별 서명 줄(`Claude Opus …`, `Claude Sonnet …`)보다 이 규칙이 우선한다. 직접 커밋할 때와 서브에이전트·스킬로 커밋할 때 모두 같다.
 - **마이크로 커밋**: 커밋할 때는 역할별(빌드 / 코드+테스트 / lint 설정 / CI / 문서 / 하네스)로 나눈다. 의미 단위를 우선해 의존 순서대로 나누고, 중간 커밋은 빌드가 깨질 수 있다. 자동 검증은 `/pr` 이 마지막 커밋에서만 한다. 상세는 CONVENTIONS §5.

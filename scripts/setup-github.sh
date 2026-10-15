@@ -58,7 +58,7 @@ if [[ -n "$existing" ]]; then
 else
   gh api -X POST "repos/$repo/rulesets" --input - <<<"$ruleset" >/dev/null
 fi && echo "✓ main 룰셋 (PR 필수 · merge 만 · 필수 체크 ci-result)" ||
-  warnings+=("main 룰셋 설정 실패: 비공개 레포는 GitHub Pro 이상에서만 룰셋을 쓸 수 있습니다. 로컬 훅(.githooks, .claude/hooks)이 main 직접 커밋·push 를 막습니다")
+  warnings+=("main 룰셋 설정 실패: 비공개 레포는 GitHub Pro 이상에서만 룰셋을 쓸 수 있습니다. 로컬 git 훅(.githooks)이 main 직접 커밋·머지 커밋·push 를 막습니다")
 
 if gh secret list --repo "$repo" 2>/dev/null | grep -q '^CLAUDE_CODE_OAUTH_TOKEN'; then
   echo "✓ CLAUDE_CODE_OAUTH_TOKEN 시크릿 있음"
