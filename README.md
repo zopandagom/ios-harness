@@ -8,8 +8,8 @@
 | 프로젝트 구조 | Tuist 모듈러 아키텍처: `App`(조립 지점) · `Features/Home`(Model + View + Tests + Example 앱) · `Shared/Core`. Client(Interface / Impl / Testing) 추가 템플릿 |
 | 아키텍처 규칙 | 규칙 기반 단방향 MV (`@Observable` Model, `private(set)` 상태, 이벤트 메서드), Swift 6 strict concurrency. SwiftLint custom rules 로 모듈 경계 강제 |
 | 도구 | mise 로 버전 고정한 Tuist · SwiftLint · SwiftFormat · xcbeautify, `Makefile` (`bootstrap` `generate` `lint` `format` `test`) |
-| Claude Code 하네스 | 스킬 `/verify` `/arch-review` `/micro-commit` `/pr`, 훅(main 직접 커밋·push 차단, Swift 자동 포맷, 고친 파일을 언급하는 문서 알림), 권한 설정. 리뷰 기준·지적 처리 규칙(로컬·CI 리뷰 공통, `/pr` 이 CI 지적을 모아 답한다)과 팀 구현 흐름(설계자·비판자·구현자·대조자) |
-| git 훅 | pre-commit lint, pre-push main 차단 |
+| Claude Code 하네스 | 스킬 `/verify` `/arch-review` `/micro-commit` `/pr`, 훅(Swift 자동 포맷, 고친 파일을 언급하는 문서 알림), 권한 설정. 작업 범위(In/Out·수용 확인)와 리뷰 기준·지적 처리 규칙(로컬·CI 리뷰 공통, `/pr` 이 CI 지적을 모아 답한다), 팀 구현 흐름(설계자·비판자·구현자·대조자) |
+| git 훅 | pre-commit(main 커밋 차단·lint), pre-merge-commit(main 머지 커밋 차단), pre-push(main push 차단). `make test-hooks` 가 임시 레포에서 동작을 확인하고 `make test`·CI 에 포함 |
 | GitHub | CI(Ubuntu lint + 줄 단위 어노테이션, macOS 빌드·테스트 + PR 코멘트 요약, `ci-result` 집계 체크), Claude Review 워크플로, PR 템플릿, Dependabot. 생성 시 머지 방식·유형 라벨·main 룰셋까지 설정 |
 | 문서 | `CLAUDE.md`, `docs/ARCHITECTURE.md` · `CONVENTIONS.md` · `DEVELOPMENT_PLAN.md` — 앱 설명으로 제품 부분을 채운다 |
 
