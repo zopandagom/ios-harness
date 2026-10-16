@@ -6,7 +6,12 @@
 <!-- new-ios-app: DEVELOPMENT_PLAN 의 MVP 기능을 목록으로 요약하고 이 주석을 지운다 -->
 
 ## 기술 스택
-- SwiftUI (규칙 기반 단방향 MV), Swift 6 strict concurrency, iOS __IOS_VERSION__+
+<!-- >>> ios -->
+- SwiftUI (규칙 기반 단방향 MV), Swift 6 strict concurrency, iOS __OS_VERSION__+ (iPhone)
+<!-- <<< ios -->
+<!-- >>> macos -->
+- SwiftUI (규칙 기반 단방향 MV), Swift 6 strict concurrency, macOS __OS_VERSION__+
+<!-- <<< macos -->
 - Tuist 모듈러 아키텍처 (Feature / Client Interface·Impl·Testing / Shared)
 <!-- new-ios-app: 앱이 쓸 Apple 프레임워크를 줄로 추가하고 이 주석을 지운다 -->
 

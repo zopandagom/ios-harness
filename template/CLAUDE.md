@@ -13,7 +13,7 @@
 | `make bootstrap` | 최초 1회: mise 도구 설치, git 훅 연결 |
 | `make generate` | Tuist 로 워크스페이스 생성 후 Xcode 로 열기 (`.xcodeproj` 는 커밋하지 않는다). 열지 않으려면 `make project` |
 | `make lint` / `make format` | SwiftFormat + SwiftLint (아키텍처 규칙 포함) |
-| `make test` | 전체 모듈 빌드 + 테스트 (`__APP_NAME__-Workspace` 스킴, iPhone 17 시뮬레이터) + git 훅 테스트 |
+| `make test` | 전체 모듈 빌드 + 테스트 (`__APP_NAME__-Workspace` 스킴, 대상은 `Makefile` 의 `DESTINATION`) + git 훅 테스트 |
 | `make test-hooks` | git 훅 동작 테스트: 임시 레포에서 main 커밋·머지 커밋·push 차단과 기능 브랜치 통과 확인 |
 
 ## 작업 흐름 (`/verify`·`/arch-review`·`/micro-commit` 은 서브에이전트로 실행되어 요약만 돌려주고, `/pr` 은 현재 대화에서 실행된다)
@@ -38,7 +38,7 @@ Tuist/ProjectDescriptionHelpers/   모듈 이름(Module.swift)과 타깃 템플�
 
 ## 반드시 지킬 것 (요약, 상세는 CONVENTIONS)
 - Model 상태는 `private(set)`, View 는 이벤트 메서드(`onAppear()`, `xxxTapped()`)만 호출한다. `$model.x` 바인딩 금지.
-- 부수효과 프레임워크(SwiftData·StoreKit·UserNotifications 등, 목록은 `.swiftlint.yml` 의 `system_framework_only_in_impl`)는 Client **Impl** 안에서만 import 한다. Core 는 SwiftUI·UIKit 을 쓰지 않는다. 그 밖의 부수효과 없는 iOS 프레임워크(CoreGraphics·ImageIO 등)는 Core 를 포함한 모든 레이어에서 쓸 수 있다.
+- 부수효과 프레임워크(SwiftData·StoreKit·UserNotifications 등, 목록은 `.swiftlint.yml` 의 `system_framework_only_in_impl`)는 Client **Impl** 안에서만 import 한다. Core 는 SwiftUI·UIKit·AppKit 을 쓰지 않는다. 그 밖의 부수효과 없는 Apple 프레임워크(CoreGraphics·ImageIO 등)는 Core 를 포함한 모든 레이어에서 쓸 수 있다.
 - Feature 끼리 의존하지 않는다. Impl 은 App 만, Testing 은 Tests/Example 만 import 한다.
 <!-- >>> no-network -->
 - 네트워크 코드(`URLSession` 등)를 추가하지 않는다.
