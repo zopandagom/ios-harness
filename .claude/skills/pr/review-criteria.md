@@ -6,7 +6,8 @@
 ## 점검 항목
 - **공개 레포**: 팀 ID·개인 번들 ID·이메일·비밀값·로컬 절대 경로가 들어가지 않았는가.
 - **제품 고유 내용**: 생성 프로젝트에서 가져온 개선에 앱 이름·제품 약속·제품 전용 lint 규칙·프레임워크(예: Photos·MapKit 전용 규칙)가 남지 않았는가. 제품마다 다른 내용은 `<!-- new-ios-app: … -->` 자리 표시로 남겼는가.
-- **토큰**: `__APP_NAME__` `__DISPLAY_NAME__` `__BUNDLE_ID__` `__TEAM_ID__` `__IOS_VERSION__` 외의 토큰이 생겼으면 `scripts/new-app.sh` 의 치환·잔여 검사와 README 가 함께 바뀌었는가.
+- **토큰**: `__APP_NAME__` `__DISPLAY_NAME__` `__BUNDLE_ID__` `__TEAM_ID__` `__OS_VERSION__` 외의 토큰이 생겼으면 `scripts/new-app.sh` 의 치환·잔여 검사와 README 가 함께 바뀌었는가.
+- **플랫폼**: 템플릿 변경이 iOS·macOS 양쪽에서 맞는가. 한쪽 전용 줄은 `>>> ios`·`>>> macos` 블록 안에 있고, 공통 문서·코드에 iPhone·시뮬레이터·UIKit 같은 한쪽 전용 표현이 블록 밖에 새로 생기지 않았는가.
 - **자리 표시**: `new-ios-app:` 자리 표시를 추가·삭제했으면 `skills/new-ios-app/SKILL.md` §3 표가 맞는가.
 - **`>>> no-network` 블록**: 새로 네트워크 관련 줄을 넣었다면 블록 안에 있고, `--allow-network` 변형에서 지워져도 문서·설정이 성립하는가.
 - **문서 일치**: 바꾼 동작을 설명하는 다른 곳(템플릿 `CLAUDE.md`·`docs/`·`.claude/skills`, README, 루트 `CLAUDE.md`, `skills/new-ios-app/SKILL.md`, 스크립트 주석)이 같은 내용으로 맞춰졌는가. 같은 규칙을 다시 적은 줄(리뷰 스킬·CI 프롬프트)도 핵심 문구로 검색해 본다.

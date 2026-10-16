@@ -4,7 +4,12 @@ MISE := mise exec --
 
 WORKSPACE := __APP_NAME__.xcworkspace
 SCHEME ?= __APP_NAME__-Workspace
+# >>> ios
 DESTINATION ?= platform=iOS Simulator,name=iPhone 17,OS=latest
+# <<< ios
+# >>> macos
+DESTINATION ?= platform=macOS,arch=$(shell uname -m)
+# <<< macos
 RESULT_BUNDLE := build/TestResults.xcresult
 
 .PHONY: bootstrap generate project build test test-hooks lint format clean

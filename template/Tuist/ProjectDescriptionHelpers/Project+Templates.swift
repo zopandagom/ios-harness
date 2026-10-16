@@ -3,10 +3,22 @@ import ProjectDescription
 public enum Env {
   public static let appName = "__APP_NAME__"
   public static let bundleIdPrefix = "__BUNDLE_ID__"
+  // >>> ios
   public static let destinations: Destinations = [.iPhone]
-  public static let deploymentTargets: DeploymentTargets = .iOS("__IOS_VERSION__")
+  public static let deploymentTargets: DeploymentTargets = .iOS("__OS_VERSION__")
+  /// 앱 타깃(App·Example) Info.plist 에 공통으로 넣는 값.
+  static let appInfoPlist: [String: Plist.Value] = ["UILaunchScreen": [:]]
   /// Apple Developer Program 팀 ID. 실기기 빌드는 Xcode 자동 서명으로 프로비저닝한다.
   /// 비어 있으면 시뮬레이터 빌드와 CI 만 된다. 실기기에서 돌리기 전에 채운다.
+  // <<< ios
+  // >>> macos
+  public static let destinations: Destinations = [.mac]
+  public static let deploymentTargets: DeploymentTargets = .macOS("__OS_VERSION__")
+  /// 앱 타깃(App·Example) Info.plist 에 공통으로 넣는 값.
+  static let appInfoPlist: [String: Plist.Value] = [:]
+  /// Apple Developer Program 팀 ID. 배포 빌드는 Xcode 자동 서명으로 프로비저닝한다.
+  /// 비어 있으면 이 Mac 에서 실행(ad-hoc 서명)과 CI 만 된다. 배포 전에 채운다.
+  // <<< macos
   static let developmentTeam = "__TEAM_ID__"
 
   static let baseSettings: SettingsDictionary = [
@@ -36,7 +48,7 @@ public extension Project {
           product: .app,
           bundleId: Env.bundleIdPrefix,
           deploymentTargets: Env.deploymentTargets,
-          infoPlist: .extendingDefault(with: infoPlist.merging(["UILaunchScreen": [:]]) { $1 }),
+          infoPlist: .extendingDefault(with: Env.appInfoPlist.merging(infoPlist) { $1 }),
           buildableFolders: ["Sources", "Resources"],
           dependencies: dependencies
         ),
@@ -109,7 +121,7 @@ public extension Project {
           product: .app,
           bundleId: Env.bundleId(feature.example),
           deploymentTargets: Env.deploymentTargets,
-          infoPlist: .extendingDefault(with: ["UILaunchScreen": [:]]),
+          infoPlist: .extendingDefault(with: Env.appInfoPlist),
           buildableFolders: ["Example"],
           dependencies: [.target(name: feature.name)] + testing + shared
         ),

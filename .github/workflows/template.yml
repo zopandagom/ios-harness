@@ -11,11 +11,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # 템플릿으로 샘플 앱을 실제로 만들어 lint·빌드·테스트까지 돌린다. 공개 레포라 macOS 러너가 무료다.
+  # 템플릿으로 iOS·macOS 샘플 앱을 실제로 만들어 lint·빌드·테스트까지 돌린다. 공개 레포라 macOS 러너가 무료다.
   # 루트 .mise.toml 은 template/.mise.toml 을 가리키는 심볼릭 링크라 생성된 앱과 같은 도구 버전이 설치된다.
   generate-and-test:
     runs-on: macos-26
-    timeout-minutes: 30
+    timeout-minutes: 45
     permissions:
       contents: read
     steps:

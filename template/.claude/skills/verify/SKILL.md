@@ -28,8 +28,10 @@ CI(`.github/workflows/ci.yml`)와 같은 Makefile 타깃으로 검증한다. 로
      xcrun xcresulttool get test-results summary --path build/TestResults.xcresult \
        | jq '{result, totalTestCount, failedTests, testFailures}'
      ```
+<!-- >>> ios -->
    - 시뮬레이터를 못 찾으면 `xcrun simctl list devices available | grep iPhone` 으로 확인하고
      `make test DESTINATION='platform=iOS Simulator,name=<기기>,OS=latest'` 로 다시 실행한다.
+<!-- <<< ios -->
 
 ## 보고 형식
 

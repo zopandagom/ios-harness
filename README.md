@@ -1,6 +1,6 @@
 # ios-harness
 
-새 iOS 앱 프로젝트를 **앱 이름과 설명만 넣으면 바로 개발을 시작할 수 있는 상태**로 만들어 주는 Claude Code 플러그인이다.
+새 iOS·macOS 앱 프로젝트를 **앱 이름과 설명만 넣으면 바로 개발을 시작할 수 있는 상태**로 만들어 주는 Claude Code 플러그인이다.
 
 ## 만들어지는 것
 | 영역 | 내용 |
@@ -21,32 +21,35 @@
 
 # 새 프로젝트를 만들 때
 /ios-harness:new-ios-app 영수증 사진에서 지출을 정리하는 앱. 데이터는 기기 밖으로 나가지 않는다.
+/ios-harness:new-ios-app 사내 테스트용 iOS 앱 빌드를 시뮬레이터에 설치·실행해 주는 Mac 앱.
 ```
+플랫폼(iOS·macOS)은 설명에서 기본안을 정하고 확인받는다. macOS 를 고르면 Mac 타깃(`[.mac]`)으로 만들어지고, 테스트는 시뮬레이터 대신 이 Mac 에서 돈다.
 스킬이 앱 이름·번들 ID·레포 이름 같은 기본값을 제안하고, 확인을 받은 뒤 생성 → 문서 채우기 → `make lint && make test` → GitHub 레포 생성·설정까지 진행한다. 레포 생성 전에는 다시 확인을 받는다.
 
-필요한 것: Xcode(iOS 26 SDK), [mise](https://mise.jdx.dev), [gh](https://cli.github.com)(로그인 상태), jq.
+필요한 것: Xcode(iOS·macOS 26 SDK), [mise](https://mise.jdx.dev), [gh](https://cli.github.com)(로그인 상태), jq.
 
 ### 생성 후 직접 할 일
 1. **Claude GitHub App** 을 새 레포에 설치 (모든 레포에 설치했다면 생략)
 2. **`CLAUDE_CODE_OAUTH_TOKEN` 시크릿**: `claude setup-token` → `gh secret set CLAUDE_CODE_OAUTH_TOKEN --repo <owner/repo>`
-3. 실기기에서 돌리기 전에 `Env.developmentTeam` 에 팀 ID 입력
+3. 실기기 실행·배포 전에 `Env.developmentTeam` 에 팀 ID 입력
 4. (선택) 팀 구현(CONVENTIONS §6)을 Agent Teams 로 하려면 Claude Code 사용자 설정에 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. 없으면 서브에이전트로 대신한다
 
 ### 스크립트만 쓰기
 ```bash
-scripts/new-app.sh --dest ../my-app-ios --name MyApp --bundle-id com.me.myapp [--display-name 내앱] [--team ABCDE12345] [--ios 26.0] [--allow-network]
+scripts/new-app.sh --dest ../my-app-ios --name MyApp --bundle-id com.me.myapp [--platform ios|macos] [--display-name 내앱] [--team ABCDE12345] [--os-version 26.0] [--allow-network]
 scripts/publish.sh ../my-app-ios me/my-app-ios private    # 첫 커밋 · 레포 생성 · 설정 · git 훅
 scripts/setup-github.sh me/my-app-ios                     # 레포 설정만 다시
 ```
-`new-app.sh` 로 만든 문서에는 `<!-- new-ios-app: … -->` 자리 표시가 남는다. 스킬을 쓰면 Claude 가 채운다.
+`--ios` 는 `--os-version` 의 이전 이름으로 계속 받는다. `new-app.sh` 로 만든 문서에는 `<!-- new-ios-app: … -->` 자리 표시가 남는다. 스킬을 쓰면 Claude 가 채운다.
 
 ## 구조
 ```
 .claude-plugin/        plugin.json · marketplace.json (이 레포가 곧 마켓플레이스이자 플러그인)
 skills/new-ios-app/    생성 스킬
 scripts/               new-app.sh · publish.sh · setup-github.sh · test-template.sh
-template/              생성될 프로젝트 원본 (토큰: __APP_NAME__ __DISPLAY_NAME__ __BUNDLE_ID__ __TEAM_ID__ __IOS_VERSION__)
-.github/workflows/     template.yml — 템플릿으로 샘플 앱을 만들어 lint · 빌드 · 테스트
+template/              생성될 프로젝트 원본 (토큰: __APP_NAME__ __DISPLAY_NAME__ __BUNDLE_ID__ __TEAM_ID__ __OS_VERSION__,
+                       플랫폼 블록: >>> ios · >>> macos)
+.github/workflows/     template.yml — 템플릿으로 iOS·macOS 샘플 앱을 만들어 lint · 빌드 · 테스트
                        claude-review.yml — PR 을 Claude 가 리뷰 (/pr 로컬 리뷰와 같은 기준)
 ```
 
