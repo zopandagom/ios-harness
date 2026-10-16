@@ -72,7 +72,7 @@ cd <위치> && git init -q -b main && mise install && make lint && make test
 <harness>/scripts/publish.sh <위치> <owner/repo> <public|private>
 ```
 - 스크립트의 ⚠ 줄은 그대로 사용자에게 전한다.
-- 첫 커밋은 main 에 바로 올라간다. 그 뒤로는 git 훅과 Claude 훅이 main 직접 커밋·push 를 막는다.
+- 첫 커밋은 main 에 바로 올라간다. 그 뒤로는 git 훅(pre-commit·pre-merge-commit·pre-push)이 main 직접 커밋·머지 커밋·push 를 막는다.
 
 ## 6. 보고
 아래를 한 블록으로 보고한다.

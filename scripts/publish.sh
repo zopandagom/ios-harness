@@ -1,6 +1,7 @@
 #!/bin/bash
 # 생성한 프로젝트로 첫 커밋을 만들고 GitHub 레포를 만들어 main 을 push 한 뒤 레포 설정과 git 훅을 연결한다.
 # main 에 직접 커밋·push 하는 것은 이 첫 커밋뿐이다. 그래서 git 훅(core.hooksPath)은 push 뒤에 연결한다.
+# 이미 make bootstrap 으로 훅을 연결해 둔 프로젝트도 있으므로, 첫 커밋과 push 는 훅을 끄고 한다 (main 커밋·push 를 막는 훅이 이 둘을 막는다).
 # 사용: publish.sh <프로젝트 디렉터리> <owner/repo> <public|private>
 set -euo pipefail
 
@@ -19,7 +20,7 @@ fi
 [[ $(git branch --show-current) == main ]] || { echo "main 브랜치가 아닙니다." >&2; exit 1; }
 if ! git rev-parse -q --verify HEAD >/dev/null; then
   git add -A
-  git commit -q -F - <<'MSG'
+  git -c core.hooksPath=/dev/null commit -q -F - <<'MSG'
 chore: ios-harness 템플릿으로 프로젝트 생성
 
 Tuist 모듈러 구조(App · Home Feature · Core), Claude Code 하네스
@@ -31,7 +32,8 @@ Co-Authored-By: Claude Code <noreply@anthropic.com>
 MSG
 fi
 
-gh repo create "$repo" "--$visibility" --source . --remote origin --push
+gh repo create "$repo" "--$visibility" --source . --remote origin
+git -c core.hooksPath=/dev/null push -q -u origin main
 "$here/setup-github.sh" "$repo"
 git config core.hooksPath .githooks
 echo "✓ git 훅 연결 (.githooks)"

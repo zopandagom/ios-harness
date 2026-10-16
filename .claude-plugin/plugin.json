@@ -1,6 +1,6 @@
 {
   "name": "ios-harness",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Tuist 모듈러 아키텍처 · 단방향 MV · Claude Code 하네스 · GitHub CI 가 갖춰진 iOS 앱 프로젝트를 만든다.",
   "author": { "name": "zopandagom" },
   "repository": "https://github.com/zopandagom/ios-harness",
