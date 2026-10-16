@@ -28,19 +28,33 @@ gh pr list --head "$(git branch --show-current)" --state open --json number,url
    ```bash
    .claude/skills/pr/verify-head.sh origin/main
    ```
-2. 도는 동안 리뷰를 Agent(`general-purpose`, 읽기 전용)에 맡긴다. 프롬프트에 범위 `git diff origin/main...HEAD` 와 아래 기준을 넣고, "파일을 수정하지 말 것, 결과는 🔴 필수 / 🟡 권장 표(파일:줄, 문제, 고칠 방법)로, 최종 보고는 한국어로"를 명시한다.
-   - **공개 레포**: 팀 ID·개인 번들 ID·이메일·비밀값·로컬 절대 경로가 들어가지 않았는가.
-   - **제품 고유 내용**: 생성 프로젝트에서 가져온 개선에 앱 이름·제품 약속·제품 전용 lint 규칙·프레임워크(예: Photos·MapKit 전용 규칙)가 남지 않았는가. 제품마다 다른 내용은 `<!-- new-ios-app: … -->` 자리 표시로 남겼는가.
-   - **토큰**: `__APP_NAME__` `__DISPLAY_NAME__` `__BUNDLE_ID__` `__TEAM_ID__` `__IOS_VERSION__` 외의 토큰이 생겼으면 `scripts/new-app.sh` 의 치환·잔여 검사와 README 가 함께 바뀌었는가.
-   - **자리 표시**: `new-ios-app:` 자리 표시를 추가·삭제했으면 `skills/new-ios-app/SKILL.md` §3 표가 맞는가.
-   - **`>>> no-network` 블록**: 새로 네트워크 관련 줄을 넣었다면 블록 안에 있고, `--allow-network` 변형에서 지워져도 문서·설정이 성립하는가.
-   - **문서 일치**: 바꾼 동작을 설명하는 다른 곳(템플릿 `CLAUDE.md`·`docs/`·`.claude/skills`, README, 루트 `CLAUDE.md`)이 같은 내용으로 맞춰졌는가. 같은 규칙을 다시 적은 줄(리뷰 스킬·CI 프롬프트)도 핵심 문구로 검색해 본다.
-   - **생성 프로젝트에서 동작**: 템플릿의 셸 스크립트·훅·워크플로가 토큰 치환 뒤에도 맞는가, `scripts/test-template.sh` 가 거치지 않는 경로(예: Client 모듈)가 있으면 그 점을 🟡 로 알린다.
-3. 두 결과가 모두 온 뒤 판단한다.
+2. 도는 동안 리뷰를 Agent(`general-purpose`, 읽기 전용)에 맡긴다. 프롬프트에 범위 `git diff origin/main...HEAD` 와 기준 파일 `.claude/skills/pr/review-criteria.md`(CI 리뷰와 같은 기준)를 읽으라는 지시를 넣고, "파일을 수정하지 말 것, 결과는 🔴 필수 / 🟡 권장 표(파일:줄, 문제, 고칠 방법)로, 최종 보고는 한국어로"를 명시한다. 이 대화에서 이미 처리를 정한 지적이 있으면 그 목록도 넘겨 다시 보고하지 않게 한다.
+3. 열린 PR 모드면 메인 대화가 직접 아래 "CI 리뷰 결과 모으기"로 CI 지적을 모은다. 로컬 리뷰와 같은 지적은 한 행으로 합친다.
+4. 검증·로컬 리뷰·(열린 PR 모드면) CI 지적이 모두 모인 뒤 판단한다.
    - 검증이 FAIL 이거나 시간 초과면 PR 을 만들지 않고 push 도 하지 않는다. 원인을 보고한다.
-   - 리뷰 지적이 1건이라도 있으면(🔴·🟡 모두) 멈추고 표와 항목별 고칠 방법을 보고한 뒤 사용자 결정을 기다린다. 이 스킬 안에서 파일을 수정하지 않는다.
+   - 리뷰 지적(로컬·CI)이 1건이라도 있으면(🔴·🟡 모두) 멈추고 표와 항목별 고칠 방법을 보고한 뒤 사용자 결정을 기다린다. 이 스킬 안에서 파일을 수정하지 않는다.
    - 사용자가 수정을 지시하면 고친 뒤 커밋은 /micro-commit 지시를 기다린다. 보류를 지시하면(🔴 는 보류 불가) 본문 "검증 · 리뷰"에 "보류(이유)"로 적는다.
    - 다음 단계 조건: 검증 PASS·SKIP, 리뷰 지적 0건이거나 남은 지적이 모두 보류한 🟡.
+
+### CI 리뷰 결과 모으기
+`<N>` 은 §1 의 PR 번호다. 아래 gh 명령의 종료 코드가 0 이 아니면 출력을 쓰지 말고 오류와 함께 멈춘다 (예외: `gh pr checks` 의 `no checks reported` 는 체크 없음).
+- 브랜치가 `.github/workflows/claude-review.yml` 을 바꿨으면 CI 리뷰는 워크플로 검증(main 의 파일과 같아야 한다)에 걸려 건너뛰고 `review` 체크는 통과로 보인다. 모으지 않고 본문 "검증 · 리뷰"에 "CI 리뷰는 워크플로 파일 변경으로 건너뜀 (로컬 리뷰로 갈음)"을 적는다.
+1. 원격 head 의 `review` 잡 상태를 본다. 하나라도 대기 중이면 `pending`, 아니면 가장 늦게 시작한 실행이다.
+   ```bash
+   gh pr checks <N> --json name,bucket,startedAt --jq '[.[] | select(.name == "review")] | if length == 0 then empty elif any(.[]; .bucket == "pending") then "pending" else (sort_by(.startedAt) | last | "\(.bucket) \(.startedAt)") end'
+   ```
+   - `pass`: 2·3 으로 지적을 모은다. 요약이 없으면 아래 "그 밖"과 같다.
+   - `pending`: 올릴 새 커밋이 있으면 CI 지적 없이 진행한다 (push 뒤 새 head 가 리뷰된다). 없으면 기다릴지 묻는다.
+   - 그 밖(`fail`·`cancel`·`skipping`, 빈 출력): 상태를 보고에 적는다. 올릴 새 커밋이 있으면 상태를 알리고 CI 지적 없이 진행한다. 없으면 Actions 에서 다시 돌릴지 이대로 진행할지 묻는다 (초안이면 `skipping` 이 정상이다).
+2. 인라인 지적: `claude[bot]` 이 1 의 `startedAt` 뒤에 단 스레드 첫 글(`in_reply_to_id` 가 null).
+   ```bash
+   gh api --paginate 'repos/{owner}/{repo}/pulls/<N>/comments' --jq '.[] | {id, in_reply_to_id, user: .user.login, path, line, created_at, html_url, body}'
+   ```
+3. 요약: `claude[bot]` 이 1 의 `startedAt` 뒤에 단 가장 늦은 `## Claude 리뷰` 코멘트. 그 표에서 인라인 지적이 없는 행도 지적으로 센다. `범위 밖:` 줄은 지적으로 세지 않고(로컬 리뷰의 범위 밖 줄도 같다) 보고에만 적는다.
+   ```bash
+   gh api --paginate 'repos/{owner}/{repo}/issues/<N>/comments' --jq '.[] | {id, user: .user.login, created_at, html_url, body}'
+   ```
+- 이 대화에서 이미 처리를 정한 지적(답했거나 본문에 보류로 적은 것)은 다시 묻지 않는다.
 
 ## 3. 라벨
 ```bash
@@ -80,8 +94,8 @@ git push origin HEAD
 - push 가 non-fast-forward 로 거절되면 멈추고 보고한다. force push 는 사용자가 허락한 뒤에만 `--force-with-lease` 로 한다.
 - 리뷰 코멘트에 대응한 커밋이면 그 스레드에 Reply 로 반영(커밋 해시)·보류(이유)를 답한다.
   ```bash
-  gh api -X POST repos/<owner>/<repo>/pulls/<N>/comments/<comment id>/replies -f body=<내용>
+  gh api -X POST repos/{owner}/{repo}/pulls/<N>/comments/<comment id>/replies -f body=<내용>
   ```
 
 ## 6. 보고
-PR 링크, 제목, 라벨, 검증·리뷰 요약(verify-head 결과, 필수 0 · 권장 N, 반영·보류)을 한 블록으로. 머지는 하지 않는다. 머지 뒤 `/plugin marketplace update` 로 설치본이 갱신된다는 것을 덧붙인다.
+PR 링크, 제목, 라벨, 검증·리뷰 요약(verify-head 결과, 필수 0 · 권장 N, 반영·보류)을 한 블록으로. push 했으면 "CI 리뷰 요약(`## Claude 리뷰`)이 올라오면 확인하고, 새 지적이 있으면 /pr 을 다시 실행해 처리한다"고 안내한다 (초안 PR 은 "준비 완료로 바꾼 뒤". 초안에서는 CI 리뷰가 돌지 않는다. `claude-review.yml` 을 바꾼 PR 은 CI 리뷰가 건너뛰어진다고 적는다). 머지는 하지 않는다. 머지 뒤 `/plugin marketplace update` 로 설치본이 갱신된다는 것을 덧붙인다.

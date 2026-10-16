@@ -12,7 +12,7 @@
 1. `feat|fix|chore/<요약>` 브랜치에서 작업한다. main 에 직접 커밋·push 하지 않는다.
 2. 템플릿·스크립트를 바꿨으면 `scripts/test-template.sh` 로 확인한다.
 3. `/micro-commit` — **사용자가 지시할 때만.** 목적별 커밋만 한다 (서브에이전트).
-4. `/pr [draft]` — **사용자가 지시할 때만.** 마지막 커밋 검증(`verify-head.sh`: 템플릿 테스트·버전 확인·JSON/YAML/셸 문법) + 레포 규칙 리뷰 → PR. 실패·지적이 있으면 멈춘다.
+4. `/pr [draft]` — **사용자가 지시할 때만.** 마지막 커밋 검증(`verify-head.sh`: 템플릿 테스트·버전 확인·JSON/YAML/셸 문법) + 레포 규칙 리뷰 → PR. 실패·지적이 있으면 멈춘다. PR 에는 CI Claude 리뷰(`.github/workflows/claude-review.yml`)가 같은 기준(`.claude/skills/pr/review-criteria.md`)으로 돌고, 열린 PR 에서 `/pr` 을 다시 실행하면 그 지적도 모은다.
 - 커밋 서명 줄은 `Co-Authored-By: Claude Code <noreply@anthropic.com>` 이다.
 
 ## 규칙
