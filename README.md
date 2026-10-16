@@ -47,6 +47,7 @@ skills/new-ios-app/    생성 스킬
 scripts/               new-app.sh · publish.sh · setup-github.sh · test-template.sh
 template/              생성될 프로젝트 원본 (토큰: __APP_NAME__ __DISPLAY_NAME__ __BUNDLE_ID__ __TEAM_ID__ __IOS_VERSION__)
 .github/workflows/     template.yml — 템플릿으로 샘플 앱을 만들어 lint · 빌드 · 테스트
+                       claude-review.yml — PR 을 Claude 가 리뷰 (/pr 로컬 리뷰와 같은 기준)
 ```
 
 ## 라이선스
