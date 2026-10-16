@@ -28,14 +28,8 @@ gh pr list --head "$(git branch --show-current)" --state open --json number,url
    ```bash
    .claude/skills/pr/verify-head.sh origin/main
    ```
-2. 도는 동안 리뷰를 Agent(`general-purpose`, 읽기 전용)에 맡긴다. 프롬프트에 범위 `git diff origin/main...HEAD` 와 아래 기준을 넣고, "파일을 수정하지 말 것, 결과는 🔴 필수 / 🟡 권장 표(파일:줄, 문제, 고칠 방법)로, 최종 보고는 한국어로"를 명시한다.
-   - **공개 레포**: 팀 ID·개인 번들 ID·이메일·비밀값·로컬 절대 경로가 들어가지 않았는가.
-   - **제품 고유 내용**: 생성 프로젝트에서 가져온 개선에 앱 이름·제품 약속·제품 전용 lint 규칙·프레임워크(예: Photos·MapKit 전용 규칙)가 남지 않았는가. 제품마다 다른 내용은 `<!-- new-ios-app: … -->` 자리 표시로 남겼는가.
-   - **토큰**: `__APP_NAME__` `__DISPLAY_NAME__` `__BUNDLE_ID__` `__TEAM_ID__` `__IOS_VERSION__` 외의 토큰이 생겼으면 `scripts/new-app.sh` 의 치환·잔여 검사와 README 가 함께 바뀌었는가.
-   - **자리 표시**: `new-ios-app:` 자리 표시를 추가·삭제했으면 `skills/new-ios-app/SKILL.md` §3 표가 맞는가.
-   - **`>>> no-network` 블록**: 새로 네트워크 관련 줄을 넣었다면 블록 안에 있고, `--allow-network` 변형에서 지워져도 문서·설정이 성립하는가.
-   - **문서 일치**: 바꾼 동작을 설명하는 다른 곳(템플릿 `CLAUDE.md`·`docs/`·`.claude/skills`, README, 루트 `CLAUDE.md`)이 같은 내용으로 맞춰졌는가. 같은 규칙을 다시 적은 줄(리뷰 스킬·CI 프롬프트)도 핵심 문구로 검색해 본다.
-   - **생성 프로젝트에서 동작**: 템플릿의 셸 스크립트·훅·워크플로가 토큰 치환 뒤에도 맞는가, `scripts/test-template.sh` 가 거치지 않는 경로(예: Client 모듈)가 있으면 그 점을 🟡 로 알린다.
+2. 도는 동안 리뷰를 Agent(`general-purpose`, 읽기 전용)에 맡긴다. 프롬프트에 범위 `git diff origin/main...HEAD` 와 기준 파일 `.claude/skills/pr/review-criteria.md`(CI 리뷰와 같은 기준)를 읽으라는 지시를 넣고, "파일을 수정하지 말 것, 결과는 🔴 필수 / 🟡 권장 표(파일:줄, 문제, 고칠 방법)로, 최종 보고는 한국어로"를 명시한다. 이 대화에서 이미 처리를 정한 지적이 있으면 그 목록도 넘겨 다시 보고하지 않게 한다.
+   - 열린 PR 모드면 CI 리뷰(`Claude Review` 워크플로)도 모은다: `gh pr view <N> --json comments --jq '.comments[] | select(.body | startswith("## Claude 리뷰")) | .body'` 의 마지막 요약과 `gh api 'repos/{owner}/{repo}/pulls/<N>/comments' --paginate` 의 인라인 지적. 로컬 리뷰와 같은 지적은 한 행으로 합친다.
 3. 두 결과가 모두 온 뒤 판단한다.
    - 검증이 FAIL 이거나 시간 초과면 PR 을 만들지 않고 push 도 하지 않는다. 원인을 보고한다.
    - 리뷰 지적이 1건이라도 있으면(🔴·🟡 모두) 멈추고 표와 항목별 고칠 방법을 보고한 뒤 사용자 결정을 기다린다. 이 스킬 안에서 파일을 수정하지 않는다.
@@ -84,4 +78,4 @@ git push origin HEAD
   ```
 
 ## 6. 보고
-PR 링크, 제목, 라벨, 검증·리뷰 요약(verify-head 결과, 필수 0 · 권장 N, 반영·보류)을 한 블록으로. 머지는 하지 않는다. 머지 뒤 `/plugin marketplace update` 로 설치본이 갱신된다는 것을 덧붙인다.
+PR 링크, 제목, 라벨, 검증·리뷰 요약(verify-head 결과, 필수 0 · 권장 N, 반영·보류)을 한 블록으로. push 했으면 "CI 리뷰 요약(`## Claude 리뷰`)이 올라오면 확인하고, 새 지적이 있으면 /pr 을 다시 실행해 처리한다"고 안내한다. 머지는 하지 않는다. 머지 뒤 `/plugin marketplace update` 로 설치본이 갱신된다는 것을 덧붙인다.
