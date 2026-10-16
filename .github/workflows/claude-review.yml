@@ -12,8 +12,11 @@ jobs:
   # 로컬 /pr 리뷰와 같은 기준(.claude/skills/pr/review-criteria.md)으로 PR 을 리뷰한다.
   # 이 파일을 바꾼 PR 은 claude-code-action 의 워크플로 검증(main 의 파일과 같아야 한다)에 걸려 리뷰를 건너뛴다.
   review:
-    # Dependabot 이 연 PR 은 Actions 시크릿을 읽을 수 없어 항상 실패하므로 제외한다.
-    if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
+    # 시크릿을 읽을 수 없는 PR(Dependabot·fork)은 항상 실패하므로 제외한다.
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.actor != 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
