@@ -20,14 +20,25 @@
 ## 완료 기준 (Definition of Done)
 - [ ] `/pr` 의 마지막 커밋 검사 PASS·SKIP, 필수 체크 `ci-result` 통과, 머지 전 확인 충족 (CONVENTIONS §5 "리뷰 지적 처리")
 - [ ] CONVENTIONS §3 이 요구하는 테스트 (미뤘으면 그 보류 기록, CONVENTIONS §5 "리뷰 지적 처리")
+<!-- >>> ios -->
 - [ ] 해당하는 수동 확인(Example 앱 주요 상태, 실기기) 완료 (CONVENTIONS §5 표 "수동 확인" 행)
+<!-- <<< ios -->
+<!-- >>> macos -->
+- [ ] 해당하는 수동 확인(Example 앱 주요 상태, 배포 서명 빌드) 완료 (CONVENTIONS §5 표 "수동 확인" 행)
+<!-- <<< macos -->
 - [ ] 제품 약속(CONVENTIONS §4) 위반 없음
 
 ## 출시 전 준비 체크리스트 (코드 외)
 | 항목 | 필요 시점 | 상태 |
 |---|---|---|
+<!-- >>> ios -->
 | Apple Developer Program 가입, 팀 ID 를 `Env.developmentTeam` 에 입력 | 실기기 테스트 전 | ☐ |
 | App ID `__BUNDLE_ID__` 등록 | 실기기 테스트 전 | ☐ |
+<!-- <<< ios -->
+<!-- >>> macos -->
+| Apple Developer Program 가입, 팀 ID 를 `Env.developmentTeam` 에 입력 | 배포 전 | ☐ |
+| App ID `__BUNDLE_ID__` 등록 | 배포 전 | ☐ |
+<!-- <<< macos -->
 | App Store Connect 앱 생성, 앱 이름 선점 ("__DISPLAY_NAME__") | 가능한 빨리 | ☐ |
 | `PrivacyInfo.xcprivacy`, 개인정보 처리방침 페이지 | 출시 전 | ☐ |
 | 스토어 스크린샷·설명·키워드 (ASO) | 출시 전 | ☐ |
