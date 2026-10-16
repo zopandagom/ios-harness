@@ -27,7 +27,7 @@ argument-hint: "[앱 설명]"
 | 앱 이름 `--name` | 영문 PascalCase. 타깃·워크스페이스·`<Name>App` 타입 이름에 쓰인다 | 설명에서 짓는다 |
 | 표시 이름 `--display-name` | 홈 화면·Dock 에 보이는 이름. 한국어 가능, 따옴표·역슬래시 불가 | 앱 이름 |
 | 번들 ID `--bundle-id` | `com.<owner>.<소문자 앱 이름>` | `gh api user --jq .login` 으로 owner |
-| 팀 ID `--team` | Apple Developer 팀 ID 10자리. 비우면 서명 없이 되는 빌드(iOS 시뮬레이터, 이 Mac 에서 실행, CI)만 | 비움 |
+| 팀 ID `--team` | Apple Developer 팀 ID 10자리. 비우면 iOS 는 시뮬레이터·CI, macOS 는 이 Mac 에서 실행(ad-hoc 서명)·CI 만 | 비움 |
 | 최소 OS `--os-version` | 고른 플랫폼의 버전. `26.0` 형식 | `26.0` (쓰려는 프레임워크가 더 높은 버전을 요구하면 그 버전) |
 | 네트워크 | 서버·외부 API 를 쓰면 허용(`--allow-network`). 금지면 lint `no_network` 와 문서 규칙이 들어간다 | 설명에 서버·로그인·동기화가 없으면 금지 |
 | 위치 | 프로젝트 디렉터리. 비어 있거나 없어야 한다 | 현재 작업 디렉터리의 상위 디렉터리 아래 `<소문자-앱-이름>-<플랫폼>` (`-ios`·`-macos`) |
