@@ -45,12 +45,12 @@ gh pr list --head "$(git branch --show-current)" --state open --json number,url
    ```
    - `pass`: 2·3 으로 지적을 모은다. 요약이 없으면 아래 "그 밖"과 같다.
    - `pending`: 올릴 새 커밋이 있으면 CI 지적 없이 진행한다 (push 뒤 새 head 가 리뷰된다). 없으면 기다릴지 묻는다.
-   - 그 밖(`fail`·`cancel`·`skipping`, 빈 출력): 상태를 보고에 적는다. 올릴 새 커밋이 없으면 Actions 에서 다시 돌릴지 이대로 진행할지 묻는다 (초안이면 `skipping` 이 정상이다).
+   - 그 밖(`fail`·`cancel`·`skipping`, 빈 출력): 상태를 보고에 적는다. 올릴 새 커밋이 있으면 상태를 알리고 CI 지적 없이 진행한다. 없으면 Actions 에서 다시 돌릴지 이대로 진행할지 묻는다 (초안이면 `skipping` 이 정상이다).
 2. 인라인 지적: `claude[bot]` 이 1 의 `startedAt` 뒤에 단 스레드 첫 글(`in_reply_to_id` 가 null).
    ```bash
    gh api --paginate 'repos/{owner}/{repo}/pulls/<N>/comments' --jq '.[] | {id, in_reply_to_id, user: .user.login, path, line, created_at, html_url, body}'
    ```
-3. 요약: `claude[bot]` 이 1 의 `startedAt` 뒤에 단 가장 늦은 `## Claude 리뷰` 코멘트. 그 표에서 인라인 지적이 없는 행과 `범위 밖:` 줄도 지적으로 센다.
+3. 요약: `claude[bot]` 이 1 의 `startedAt` 뒤에 단 가장 늦은 `## Claude 리뷰` 코멘트. 그 표에서 인라인 지적이 없는 행도 지적으로 센다. `범위 밖:` 줄은 지적으로 세지 않고(로컬 리뷰의 범위 밖 줄도 같다) 보고에만 적는다.
    ```bash
    gh api --paginate 'repos/{owner}/{repo}/issues/<N>/comments' --jq '.[] | {id, user: .user.login, created_at, html_url, body}'
    ```
@@ -94,7 +94,7 @@ git push origin HEAD
 - push 가 non-fast-forward 로 거절되면 멈추고 보고한다. force push 는 사용자가 허락한 뒤에만 `--force-with-lease` 로 한다.
 - 리뷰 코멘트에 대응한 커밋이면 그 스레드에 Reply 로 반영(커밋 해시)·보류(이유)를 답한다.
   ```bash
-  gh api -X POST repos/<owner>/<repo>/pulls/<N>/comments/<comment id>/replies -f body=<내용>
+  gh api -X POST repos/{owner}/{repo}/pulls/<N>/comments/<comment id>/replies -f body=<내용>
   ```
 
 ## 6. 보고
