@@ -39,6 +39,19 @@ update_check() {
     { echo "FAIL: .harness-version 이 새 버전·입력으로 바뀌지 않았습니다." >&2; exit 1; }
   [[ -z $(git -C "$p" diff --name-only --diff-filter=U) ]] || { echo "FAIL: 업데이트에 충돌이 남았습니다." >&2; exit 1; }
 
+  # 충돌: 프로젝트와 하네스(v3)가 같은 줄을 다르게 고치면 성공으로 끝나되 그 파일이 충돌로 남고 목록에 나와야 한다.
+  (cd "$p" && git add -A && "${g[@]}" commit -q -m harness-update)
+  perl -pi -e 's/^하네스 새 줄$/프로젝트가 고친 줄/' "$p/docs/CONVENTIONS.md"
+  (cd "$p" && "${g[@]}" commit -q -am project-edit)
+  perl -pi -e 's/^하네스 새 줄$/하네스가 다시 고친 줄/' "$h/template/docs/CONVENTIONS.md"
+  jq '.version = "99.0.1"' "$h/.claude-plugin/plugin.json" >"$h/plugin.json" && mv "$h/plugin.json" "$h/.claude-plugin/plugin.json"
+  (cd "$h" && "${g[@]}" commit -q -am v3)
+  local out
+  out=$("$h/scripts/update-app.sh" "$p") || { echo "FAIL: 충돌이 있는 업데이트가 실패 코드로 끝났습니다." >&2; exit 1; }
+  grep -q '^  docs/CONVENTIONS.md$' <<<"$out" && [[ $(git -C "$p" diff --name-only --diff-filter=U) == docs/CONVENTIONS.md ]] ||
+    { echo "FAIL: 충돌 파일이 목록에 없거나 충돌로 남지 않았습니다:" >&2; echo "$out" >&2; exit 1; }
+  grep -qx 'version=99.0.1' "$p/.harness-version" || { echo "FAIL: 충돌이 있을 때 .harness-version 이 갱신되지 않았습니다." >&2; exit 1; }
+
   # 옛 한 줄 형식(버전만): 태그 ios-harness--v0.5.0 의 new-app.sh 로 만든 프로젝트를 이 하네스로 올린다.
   # 태그가 이 레포에 없으면(CI 의 얕은 checkout) update-app.sh 가 공개 레포에서 받는다.
   # 옛 new-app.sh 는 git 레포 안에 놓이면 그 레포의 커밋을 적으므로, 사본은 레포 밖 임시 디렉터리에 둔다.
