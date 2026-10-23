@@ -116,7 +116,11 @@ if git diff --quiet refs/harness/base refs/harness/target -- . ':!.harness-versi
 fi
 
 # 하네스 변경을 3-way 로 합친다. .harness-version 은 생성 방식에 따라 기록이 달라질 수 있어 새 생성본으로 덮는다.
-git cherry-pick --no-commit refs/harness/target >/dev/null 2>&1 || true
+# 충돌이면 실패 코드로 끝나므로 충돌 파일이 없을 때만 실패로 본다.
+if ! out=$(git cherry-pick --no-commit refs/harness/target 2>&1) && [[ -z $(git diff --name-only --diff-filter=U) ]]; then
+  fail "하네스 변경을 합치지 못했습니다:
+$out"
+fi
 git cherry-pick --quit 2>/dev/null || true
 cp "$tmp/target/.harness-version" .harness-version
 git add .harness-version
