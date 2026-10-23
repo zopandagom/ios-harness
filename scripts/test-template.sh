@@ -91,6 +91,9 @@ harness_docs_check() {
   hook docs/harness/CONVENTIONS.md 2
   hook docs/PRODUCT.md 0
   (cd "$p" && make -s check-harness-docs) || { echo "FAIL: 손대지 않은 docs/harness 가 검사에 실패했습니다." >&2; exit 1; }
+  touch "$p/docs/harness/.DS_Store" # Finder 가 만드는 파일은 git 이 무시하므로 검사도 보지 않아야 한다
+  (cd "$p" && make -s check-harness-docs) || { echo "FAIL: docs/harness 의 .DS_Store 를 더한 파일로 셌습니다." >&2; exit 1; }
+  rm "$p/docs/harness/.DS_Store"
   echo x >"$p/docs/harness/ADDED.md"
   ! (cd "$p" && make -s check-harness-docs >/dev/null 2>&1) || { echo "FAIL: docs/harness 에 더한 파일을 검사가 잡지 못했습니다." >&2; exit 1; }
   rm "$p/docs/harness/ADDED.md"

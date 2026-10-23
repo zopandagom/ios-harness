@@ -93,7 +93,7 @@ $left"
 # docs/harness 는 하네스 소유라 프로젝트가 채울 자리 표시를 두지 않는다. 생성 결과의 체크섬을 남겨 make lint·CI 가 바뀌었는지 본다.
 if [[ -d docs/harness ]]; then
   ! grep -rq 'new-ios-app:' docs/harness || fail "docs/harness 에 자리 표시가 있습니다 (프로젝트 문서로 옮겨야 합니다)"
-  (cd docs/harness && find . -type f ! -name CHECKSUMS | LC_ALL=C sort | xargs shasum -a 256 >CHECKSUMS)
+  (cd docs/harness && find . -type f -name '*.md' | LC_ALL=C sort | xargs shasum -a 256 >CHECKSUMS)
 fi
 
 os_label=$([[ "$platform" == ios ]] && echo iOS || echo macOS)
