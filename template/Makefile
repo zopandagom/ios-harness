@@ -12,7 +12,7 @@ DESTINATION ?= platform=macOS,arch=$(shell uname -m)
 # <<< macos
 RESULT_BUNDLE := build/TestResults.xcresult
 
-.PHONY: bootstrap generate project build test test-hooks lint format clean
+.PHONY: bootstrap generate project build test test-hooks lint check-harness-docs format clean
 
 ## 최초 1회: 도구 설치 + git 훅 연결
 bootstrap:
@@ -52,7 +52,11 @@ test: project
 test-hooks:
 	./.githooks/test-hooks.sh
 
-lint:
+## docs/harness 는 하네스 소유라 생성·업데이트한 그대로여야 한다 (CONVENTIONS §6 "하네스 문서"). CI harness-docs 잡도 같은 파일로 본다
+check-harness-docs:
+	@cd docs/harness && shasum -a 256 -c --quiet CHECKSUMS || { echo "docs/harness 는 하네스 소유라 고치지 않습니다. 이 앱의 규칙은 docs/PRODUCT.md 에 쓰고, 되돌리려면 git checkout -- docs/harness" >&2; exit 1; }
+
+lint: check-harness-docs
 	$(MISE) swiftformat --lint .
 	$(MISE) swiftlint lint --strict --quiet
 
