@@ -130,8 +130,8 @@ git add .harness-version
 # 하네스 소유 경로(docs/harness)는 합치지 않고 새 생성본으로 바꾼다. 프로젝트가 그 안이나 하네스에서 없어진 파일을
 # 고쳤던 내용은 사라지므로, 그 파일을 알려 프로젝트 문서(docs/PRODUCT.md 등)로 옮기게 한다 (옛 docs/CONVENTIONS.md 등).
 owned=docs/harness
-moved=$(git diff --name-only --diff-filter=M refs/harness/base HEAD | while IFS= read -r f; do
-  if [[ "$f" == "$owned"/* ]] || ! git cat-file -e "refs/harness/target:$f" 2>/dev/null; then echo "$f"; fi
+moved=$(git diff --name-status --diff-filter=AM refs/harness/base HEAD | while IFS=$'\t' read -r st f; do
+  if [[ "$f" == "$owned"/* ]] || { [[ $st == M ]] && ! git cat-file -e "refs/harness/target:$f" 2>/dev/null; }; then echo "$f"; fi
 done)
 if git cat-file -e "refs/harness/target:$owned" 2>/dev/null; then
   git rm -rq --cached --ignore-unmatch -- "$owned"
@@ -151,7 +151,7 @@ fi
 placeholders=$(git diff refs/harness/base refs/harness/target | grep -E '^\+\+\+ |^\+.*new-ios-app:' | grep -B1 '^+[^+]' | grep -v '^--' || true)
 [[ -z "$placeholders" ]] || { echo "하네스가 새로 넣은 자리 표시 (채워야 한다):"; sed 's/^/  /' <<<"$placeholders"; }
 [[ -z "$moved" ]] || {
-  echo "프로젝트가 고쳤는데 하네스 소유이거나 하네스에서 없어진 파일 (고친 내용: git diff refs/harness/base HEAD -- <파일>. 프로젝트 문서로 옮긴다):"
+  echo "프로젝트가 고치거나 더했는데 하네스 소유이거나 하네스에서 없어진 파일 (고친 내용: git diff refs/harness/base HEAD -- <파일>. 프로젝트 문서로 옮긴다):"
   sed 's/^/  /' <<<"$moved"
 }
 echo "하네스 변경만 보기: git diff refs/harness/base refs/harness/target"
