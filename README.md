@@ -8,10 +8,10 @@
 | 프로젝트 구조 | Tuist 모듈러 아키텍처: `App`(조립 지점) · `Features/Home`(Model + View + Tests + Example 앱) · `Shared/Core`. Client(Interface / Impl / Testing) 추가 템플릿 |
 | 아키텍처 규칙 | 규칙 기반 단방향 MV (`@Observable` Model, `private(set)` 상태, 이벤트 메서드), Swift 6 strict concurrency. SwiftLint custom rules 로 모듈 경계 강제 |
 | 도구 | mise 로 버전 고정한 Tuist · SwiftLint · SwiftFormat · xcbeautify, `Makefile` (`bootstrap` `generate` `lint` `format` `test` `test-hooks`) |
-| Claude Code 하네스 | 스킬 `/verify` `/arch-review` `/micro-commit` `/pr`, 훅(Swift 자동 포맷, 고친 파일을 언급하는 문서 알림), 권한 설정. 작업 범위(In/Out·수용 확인)와 리뷰 기준·지적 처리 규칙(로컬·CI 리뷰 공통, `/pr` 이 CI 지적을 모아 답한다), 팀 구현 흐름(설계자·비판자·구현자·대조자) |
+| Claude Code 하네스 | 스킬 `/verify` `/arch-review` `/micro-commit` `/pr`, 훅(Swift 자동 포맷, 고친 파일을 언급하는 문서 알림, 하네스 문서 편집 차단), 권한 설정. 작업 범위(In/Out·수용 확인)와 리뷰 기준·지적 처리 규칙(로컬·CI 리뷰 공통, `/pr` 이 CI 지적을 모아 답한다), 팀 구현 흐름(설계자·비판자·구현자·대조자) |
 | git 훅 | pre-commit(main 커밋 차단·lint), pre-merge-commit(main 머지 커밋 차단), pre-push(main push 차단). `make test-hooks` 가 임시 레포에서 동작을 확인하고 `make test`·CI 에 포함 |
 | GitHub | CI(Ubuntu lint + 줄 단위 어노테이션, macOS 빌드·테스트 + PR 코멘트 요약, `ci-result` 집계 체크), Claude Review 워크플로, PR 템플릿, Dependabot. 생성 시 머지 방식·유형 라벨·main 룰셋까지 설정 |
-| 문서 | `CLAUDE.md`, `docs/ARCHITECTURE.md` · `CONVENTIONS.md` · `DEVELOPMENT_PLAN.md` — 앱 설명으로 제품 부분을 채운다 |
+| 문서 | 프로젝트 소유: `CLAUDE.md` · `docs/PRODUCT.md`(제품 약속·기술 결정·프로젝트 규칙) · `docs/DEVELOPMENT_PLAN.md` — 앱 설명으로 채운다. 하네스 소유: `docs/harness/`(`ARCHITECTURE` · `CONVENTIONS` · `WORKFLOW` · CLAUDE.md 가 불러오는 `GUIDE`) — 프로젝트에서 고치지 않고 업데이트로만 바뀐다 |
 
 ## 사용법
 ```text
@@ -40,9 +40,9 @@
 claude plugin marketplace update ios-harness && claude plugin update ios-harness@ios-harness   # 터미널, 끝나면 Claude Code 재시작
 /ios-harness:update-harness                                                                    # 프로젝트 디렉터리의 Claude Code 안에서
 ```
-`.harness-version` 에 적힌 버전·입력으로 만들 때의 템플릿과 지금 템플릿을 각각 만들어 **그 차이만** 프로젝트에 3-way 로 합친다. 프로젝트에서 채운 제품 내용과 직접 고친 규칙은 그대로 남고, 하네스 변경과 같은 곳을 고친 파일만 충돌로 나와 Claude 가 정리안을 내고 확인받는다. 새로 생긴 자리 표시를 채우고 `make lint && make test` 까지 돈 뒤 `chore/harness-<버전>` 브랜치에 커밋하지 않은 채로 둔다 (커밋·PR 은 프로젝트의 `/micro-commit`·`/pr`).
+`.harness-version` 에 적힌 버전·입력으로 만들 때의 템플릿과 지금 템플릿을 각각 만들어 **그 차이만** 프로젝트에 3-way 로 합친다. 프로젝트에서 채운 제품 내용과 직접 고친 규칙은 그대로 남고, 하네스 변경과 같은 곳을 고친 파일만 충돌로 나와 Claude 가 정리안을 내고 확인받는다. 하네스 소유 문서(`docs/harness/`)는 합치지 않고 새 버전으로 바꾸고, 프로젝트가 거기 고쳐 둔 내용은 `docs/PRODUCT.md` 로 옮긴다. 새로 생긴 자리 표시를 채우고 `make lint && make test` 까지 돈 뒤 `chore/harness-<버전>` 브랜치에 커밋하지 않은 채로 둔다 (커밋·PR 은 프로젝트의 `/micro-commit`·`/pr`).
 
-충돌을 줄이려면 프로젝트에서 하네스 규칙 줄을 고쳐 쓰기보다 줄을 더하는 편이 낫다. 0.6.0 전에 만든 프로젝트는 `.harness-version` 이 한 줄이라 스킬이 앱 이름·번들 ID 등을 프로젝트에서 찾아 확인받는다.
+이 앱만의 규칙은 `docs/PRODUCT.md` §3 에 더한다. `docs/harness/` 편집은 Claude Code 훅이 막고 `make lint`·CI 가 `CHECKSUMS` 로 잡는다. 하네스 규칙을 바꿔야 하면 이 레포에 반영하고 업데이트로 받는다. 0.7.0 전에 만든 프로젝트는 첫 업데이트에서 옛 `docs/CONVENTIONS.md`·`ARCHITECTURE.md` 에 채운 내용을 스킬이 `docs/PRODUCT.md` 로 옮긴다. 0.6.0 전에 만든 프로젝트는 `.harness-version` 이 한 줄이라 스킬이 앱 이름·번들 ID 등을 프로젝트에서 찾아 확인받는다.
 
 ### 스크립트만 쓰기
 ```bash
