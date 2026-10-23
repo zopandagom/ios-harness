@@ -41,8 +41,9 @@ update_check() {
 
   # 옛 한 줄 형식(버전만): 태그 ios-harness--v0.5.0 의 new-app.sh 로 만든 프로젝트를 이 하네스로 올린다.
   # 태그가 이 레포에 없으면(CI 의 얕은 checkout) update-app.sh 가 공개 레포에서 받는다.
-  local old="$work/harness-0.5.0" lp="$work/LegacyUpdated" tag=ios-harness--v0.5.0
-  mkdir -p "$old"
+  # 옛 new-app.sh 는 git 레포 안에 놓이면 그 레포의 커밋을 적으므로, 사본은 레포 밖 임시 디렉터리에 둔다.
+  local old lp="$work/LegacyUpdated" tag=ios-harness--v0.5.0
+  old=$(mktemp -d "${TMPDIR:-/tmp}/harness-0.5.0.XXXXXX")
   if git -C "$root" cat-file -e "$tag^{commit}" 2>/dev/null; then
     git -C "$root" archive "$tag" | tar -x -C "$old"
   else
@@ -55,6 +56,7 @@ update_check() {
   grep -qx "version=$(jq -r .version "$root/.claude-plugin/plugin.json")" "$lp/.harness-version" ||
     { echo "FAIL: 옛 형식 프로젝트의 .harness-version 이 새 형식으로 바뀌지 않았습니다." >&2; exit 1; }
   [[ -z $(git -C "$lp" diff --name-only --diff-filter=U) ]] || { echo "FAIL: 옛 형식 업데이트에 충돌이 남았습니다." >&2; exit 1; }
+  rm -rf "$old"
 }
 update_check
 
