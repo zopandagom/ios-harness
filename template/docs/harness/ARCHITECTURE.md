@@ -163,10 +163,4 @@ flowchart TD
 4. App 매니페스트 dependencies 에 `.feature(.onboarding)` 추가, `__APP_NAME__App` 에서 Model 을 만들어 연결.
 
 ## 4. 확정된 기술 결정
-| 결정 | 이유 |
-|---|---|
-<!-- >>> no-network -->
-| 서버 없음 | 앱이 네트워크를 쓰지 않는다. 필요해지면 사전 합의 후 별도 Client 로 추가하고 lint `no_network` 를 조정한다 |
-<!-- <<< no-network -->
-| TCA 등 외부 아키텍처 라이브러리 | 사용하지 않음. 외부 의존성 0 을 유지하고, 추가하려면 사전 합의 |
-<!-- new-ios-app: 앱 설명에서 나온 기술 결정(저장소, 사용하는 Apple 프레임워크, 외부 서비스 경계 등)을 행으로 추가하고 이 주석을 지운다 -->
+앱마다 다르므로 프로젝트 문서 [docs/PRODUCT.md](../PRODUCT.md) §2 에 있다.

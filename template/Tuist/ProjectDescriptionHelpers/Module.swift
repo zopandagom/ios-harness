@@ -1,7 +1,7 @@
 import ProjectDescription
 
 // 모듈 이름의 단일 출처. 새 모듈은 여기에 이름(Feature·Shared 는 case, Client 는 static 상수)을 추가한 뒤 Projects/ 아래에 매니페스트를 만든다.
-// 규칙은 docs/ARCHITECTURE.md 의 "모듈 추가" 절 참고.
+// 규칙은 docs/harness/ARCHITECTURE.md 의 "모듈 추가" 절 참고.
 
 /// 외부 시스템(권한, 저장소, 시스템 서비스 등)을 감싸는 Client 모듈.
 /// 각 Client 는 Interface / Impl / Testing / Tests 네 타깃으로 나뉜다.

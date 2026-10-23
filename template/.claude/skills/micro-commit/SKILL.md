@@ -1,6 +1,6 @@
 ---
 name: micro-commit
-description: 커밋되지 않은 __APP_NAME__ 변경을 docs/CONVENTIONS.md §5 의 역할(build / feat·fix·refactor / test / style / ci / docs / chore)별 마이크로 커밋으로 나눈다. 커밋만 하고 빌드·테스트는 돌리지 않는다(검증은 /pr 이 PR 직전에 한다). 사용자가 "커밋", "커밋 나눠", /micro-commit 을 명시적으로 지시할 때만 사용한다.
+description: 커밋되지 않은 __APP_NAME__ 변경을 docs/harness/CONVENTIONS.md §5 의 역할(build / feat·fix·refactor / test / style / ci / docs / chore)별 마이크로 커밋으로 나눈다. 커밋만 하고 빌드·테스트는 돌리지 않는다(검증은 /pr 이 PR 직전에 한다). 사용자가 "커밋", "커밋 나눠", /micro-commit 을 명시적으로 지시할 때만 사용한다.
 context: fork
 agent: general-purpose
 model: sonnet
@@ -30,7 +30,7 @@ git diff --stat; git diff            # 새 파일은 Read 로 내용 확인
   - 그 밖의 줄이 하나라도 있으면 아무것도 커밋하지 말고 "스테이지된 변경이 있음 (그 출력)"을 보고하고 멈춘다. 그대로 시작하면 그 내용이 계획에 나오지 않은 채 첫 커밋에 섞인다.
 
 ## 2. 역할별로 묶고 순서 정하기
-docs/CONVENTIONS.md §5 "마이크로 커밋"(표와 아래 목록)대로 type 을 정하고 나누고 순서를 정한다 (예 열의 경로로 분류. `git mv` 이동 커밋만 1단계대로 맨 앞).
+docs/harness/CONVENTIONS.md §5 "마이크로 커밋"(표와 아래 목록)대로 type 을 정하고 나누고 순서를 정한다 (예 열의 경로로 분류. `git mv` 이동 커밋만 1단계대로 맨 앞).
 
 - 한 파일에 목적이 섞였으면 아래 "부분 스테이징"으로 hunk 단위로 나눈다.
 - 커밋하기 전에 계획을 `<type>: <요약>` 목록으로 적고, 항목마다 "목적이 하나인가, 그 절의 분리 대상이 섞이지 않았나"를 확인한 뒤 시작한다.
