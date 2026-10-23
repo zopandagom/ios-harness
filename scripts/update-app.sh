@@ -62,15 +62,30 @@ git rev-parse -q --verify HEAD >/dev/null || fail "커밋이 있는 git 레포�
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/update-app.XXXXXX")
 trap 'rm -rf "$tmp"' EXIT
 
-# 만들 때의 하네스 원본. 이 하네스가 git 레포이고 그 ref 를 가지면 그대로 쓰고, 아니면 공개 레포에서 받는다.
+# 만들 때의 하네스 원본. --from 이 없으면 commit, 그다음 버전 태그 순으로 찾는다 (commit 이 push 되지 않았을 수 있다).
+# 이 하네스가 git 레포의 최상위이고 그 ref 를 가지면 그대로 쓰고, 아니면 공개 레포에서 받는다.
 plugin=$(jq -r .name "$root/.claude-plugin/plugin.json")
-ref=${from:-${commit:-${version:+$plugin--v$version}}}
-[[ -n "$ref" ]] || fail ".harness-version 에 버전이 없습니다. --from <ref> 를 주세요."
+if [[ -n "$from" ]]; then
+  candidates=("$from")
+else
+  candidates=()
+  [[ -n "$commit" ]] && candidates+=("$commit")
+  [[ -n "$version" ]] && candidates+=("$plugin--v$version")
+fi
+((${#candidates[@]})) || fail ".harness-version 에 버전이 없습니다. --from <ref> 를 주세요."
+ref=""
+find_ref() { # <git 디렉터리>: candidates 중 처음 있는 것을 ref 에 넣는다
+  local c
+  for c in "${candidates[@]}"; do
+    git -C "$1" cat-file -e "$c^{commit}" 2>/dev/null && { ref=$c; return 0; }
+  done
+  return 1
+}
 src="$root"
-if ! git -C "$src" cat-file -e "$ref^{commit}" 2>/dev/null; then
+if ! { [[ "$(git -C "$root" rev-parse --show-toplevel 2>/dev/null)" == "$(cd "$root" && pwd -P)" ]] && find_ref "$root"; }; then
   src="$tmp/harness.git"
   git clone -q --bare "$(jq -r .repository "$root/.claude-plugin/plugin.json")" "$src"
-  git -C "$src" cat-file -e "$ref^{commit}" 2>/dev/null || fail "하네스 레포에서 $ref 를 찾을 수 없습니다. --from <커밋 또는 태그> 를 주세요."
+  find_ref "$src" || fail "하네스 레포에서 ${candidates[*]} 를 찾을 수 없습니다. --from <커밋 또는 태그> 를 주세요."
 fi
 mkdir "$tmp/base-harness"
 git -C "$src" archive "$ref" | tar -x -C "$tmp/base-harness"

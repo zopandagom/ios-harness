@@ -78,7 +78,8 @@ block macos $([[ "$platform" == macos ]] && echo 1 || echo 0)
 {
   echo "# ios-harness 로 만들 때의 버전과 입력. /ios-harness:update-harness 가 읽고 갱신한다. 직접 고치지 않는다."
   echo "version=$(jq -r '.version' "$root/.claude-plugin/plugin.json")"
-  if git -C "$root" rev-parse -q --verify HEAD >/dev/null 2>&1; then
+  # 하네스 루트가 git 레포의 최상위일 때만 (다른 레포 안에 놓인 사본이면 그 레포의 커밋이 적힌다)
+  if [[ "$(git -C "$root" rev-parse --show-toplevel 2>/dev/null)" == "$(cd "$root" && pwd -P)" ]]; then
     echo "commit=$(git -C "$root" rev-parse HEAD)"
   fi
   printf '%s\n' "name=$name" "display_name=$display" "bundle_id=$bundle" "team=$team" \

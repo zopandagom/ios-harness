@@ -38,6 +38,23 @@ update_check() {
   grep -qx 'version=99.0.0' "$p/.harness-version" && grep -qx 'platform=macos' "$p/.harness-version" ||
     { echo "FAIL: .harness-version 이 새 버전·입력으로 바뀌지 않았습니다." >&2; exit 1; }
   [[ -z $(git -C "$p" diff --name-only --diff-filter=U) ]] || { echo "FAIL: 업데이트에 충돌이 남았습니다." >&2; exit 1; }
+
+  # 옛 한 줄 형식(버전만): 태그 ios-harness--v0.5.0 의 new-app.sh 로 만든 프로젝트를 이 하네스로 올린다.
+  # 태그가 이 레포에 없으면(CI 의 얕은 checkout) update-app.sh 가 공개 레포에서 받는다.
+  local old="$work/harness-0.5.0" lp="$work/LegacyUpdated" tag=ios-harness--v0.5.0
+  mkdir -p "$old"
+  if git -C "$root" cat-file -e "$tag^{commit}" 2>/dev/null; then
+    git -C "$root" archive "$tag" | tar -x -C "$old"
+  else
+    git clone -q --depth 1 --branch "$tag" "$(jq -r .repository "$root/.claude-plugin/plugin.json")" "$old" && rm -rf "$old/.git"
+  fi
+  "$old/scripts/new-app.sh" --dest "$lp" --name LegacyApp --bundle-id com.example.legacy >/dev/null
+  [[ $(cat "$lp/.harness-version") == 0.5.0 ]] || { echo "FAIL: 옛 형식 .harness-version 을 만들지 못했습니다." >&2; exit 1; }
+  (cd "$lp" && git init -q -b main && git add -A && "${g[@]}" commit -q -m init)
+  "$root/scripts/update-app.sh" "$lp" --name LegacyApp --bundle-id com.example.legacy --os-version 26.0
+  grep -qx "version=$(jq -r .version "$root/.claude-plugin/plugin.json")" "$lp/.harness-version" ||
+    { echo "FAIL: 옛 형식 프로젝트의 .harness-version 이 새 형식으로 바뀌지 않았습니다." >&2; exit 1; }
+  [[ -z $(git -C "$lp" diff --name-only --diff-filter=U) ]] || { echo "FAIL: 옛 형식 업데이트에 충돌이 남았습니다." >&2; exit 1; }
 }
 update_check
 
