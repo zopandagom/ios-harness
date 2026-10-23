@@ -52,9 +52,10 @@ test: project
 test-hooks:
 	./.githooks/test-hooks.sh
 
-## docs/harness 는 하네스 소유라 생성·업데이트한 그대로여야 한다 (CONVENTIONS §6 "하네스 문서"). CI harness-docs 잡도 같은 파일로 본다
+## docs/harness 는 하네스 소유라 생성·업데이트한 그대로여야 한다 (CONVENTIONS §6 "하네스 문서"): 내용과 파일 목록이 CHECKSUMS 와 같은지. CI harness-docs 잡도 같은 파일로 본다
 check-harness-docs:
-	@cd docs/harness && shasum -a 256 -c --quiet CHECKSUMS || { echo "docs/harness 는 하네스 소유라 고치지 않습니다. 이 앱의 규칙은 docs/PRODUCT.md 에 쓰고, 되돌리려면 git checkout -- docs/harness" >&2; exit 1; }
+	@cd docs/harness && shasum -a 256 -c --quiet CHECKSUMS && \
+		[[ "$$(find . -type f ! -name CHECKSUMS | LC_ALL=C sort)" == "$$(awk '{print $$2}' CHECKSUMS)" ]] || { echo "docs/harness 는 하네스 소유라 고치지 않습니다. 이 앱의 규칙은 docs/PRODUCT.md 에 쓰고, 되돌리려면 git checkout -- docs/harness" >&2; exit 1; }
 
 lint: check-harness-docs
 	$(MISE) swiftformat --lint .
