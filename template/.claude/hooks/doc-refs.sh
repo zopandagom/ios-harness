@@ -9,7 +9,7 @@ session=$(jq -r '.session_id // "none"' <<<"$input")
 root="$CLAUDE_PROJECT_DIR"
 [[ -n "$file" && -n "$root" && "$file" == "$root"/* ]] || exit 0
 rel="${file#"$root"/}"
-case "$rel" in .git/* | build/* | */Derived/* | *.xcodeproj/* | *.xcworkspace/*) exit 0 ;; esac
+case "$rel" in .git/* | build/* | .claude/team/* | */Derived/* | *.xcodeproj/* | *.xcworkspace/*) exit 0 ;; esac
 
 seen="${TMPDIR:-/tmp}/claude-doc-refs-$session"
 grep -qxF "$rel" "$seen" 2>/dev/null && exit 0
