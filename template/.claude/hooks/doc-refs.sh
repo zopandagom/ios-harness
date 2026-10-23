@@ -1,7 +1,7 @@
 #!/bin/bash
 # PostToolUse(Edit|Write|MultiEdit): 수정한 파일을 언급하는 문서 줄을 Claude 에게 알려 준다.
 # 구현 중에 같이 고칠 문서를 바로 보게 하려는 것이다. 파일 경로·이름으로만 찾으므로
-# 같은 동작을 다른 말로 설명한 문장은 작업 시작 전 영향 문서 목록(CLAUDE.md 작업 흐름 1)이 맡는다.
+# 같은 동작을 다른 말로 설명한 문장은 작업 시작 전 영향 문서 목록(docs/harness/GUIDE.md 작업 흐름 1)이 맡는다.
 # 같은 세션에서 파일마다 한 번만 알린다. 실패해도 편집 흐름을 막지 않는다.
 input=$(cat)
 file=$(jq -r '.tool_input.file_path // empty' <<<"$input")
