@@ -30,7 +30,8 @@ project:
 BUILD = $(MISE) xcodebuild build -workspace $(WORKSPACE) -scheme $(SCHEME) -destination '$(DESTINATION)' \
 	CODE_SIGNING_ALLOWED=NO
 
-## BUILD_LOG=<경로> 를 주면 빌드 로그는 그 파일에 쓰고 종료 코드와 실패 줄(최대 20줄)만 출력한다 (팀 구현의 구현자, CONVENTIONS §6)
+## BUILD_LOG=<경로> 를 주면 빌드 로그는 그 파일에 쓰고 종료 코드와 실패 줄(최대 20줄)만 출력한다 (팀 구현의 구현자, CONVENTIONS §6).
+## 앞서 도는 project 의 출력은 그대로 나오고, 생성이 실패하면 exit 줄 없이 tuist 오류로 끝난다
 build: project
 ifdef BUILD_LOG
 	@mkdir -p '$(dir $(BUILD_LOG))'; set -o pipefail; $(BUILD) 2>&1 | $(MISE) xcbeautify >'$(BUILD_LOG)' 2>&1; status=$$?; \
