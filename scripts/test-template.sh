@@ -18,38 +18,43 @@ check() { # <디렉터리>: SwiftFormat·doc-refs 처럼 git 루트를 기준으
 }
 
 # 하네스 업데이트: 하네스 사본(v1)으로 만든 프로젝트를 고친 뒤, 사본을 고쳐(v2) update-app.sh 로 가져온다.
-# 프로젝트에서 고친 줄과 하네스에서 고친 줄이 모두 남고 충돌이 없어야 한다. 같은 줄을 서로 고치면(v3) 성공으로 끝나되
-# 그 파일이 충돌로 남고 목록에 나와야 한다.
+# 프로젝트 소유 파일(DEVELOPMENT_PLAN)은 프로젝트에서 고친 줄과 하네스에서 고친 줄이 모두 남고 충돌이 없어야 한다.
+# 하네스 소유 경로(docs/harness)는 새 생성본으로 바뀌고(CHECKSUMS 통과), 프로젝트가 고쳤던 파일은 옮길 대상으로 나와야 한다.
+# 같은 줄을 서로 고치면(v3) 성공으로 끝나되 그 파일이 충돌로 남고 목록에 나와야 한다.
 update_check() {
-  local h="$work/harness" p="$work/Updated"
+  local h="$work/harness" p="$work/Updated" plan=docs/DEVELOPMENT_PLAN.md owned=docs/harness/CONVENTIONS.md out
   local g=(git -c user.name=test -c user.email=test@example.com)
   mkdir -p "$h"
   cp -R "$root/template" "$root/scripts" "$root/.claude-plugin" "$h/"
   (cd "$h" && git init -q -b main && git add -A && "${g[@]}" commit -q -m v1)
   "$h/scripts/new-app.sh" --dest "$p" --name UpdatedApp --bundle-id com.example.updated --platform macos >/dev/null
   (cd "$p" && git init -q -b main && git add -A && "${g[@]}" commit -q -m init)
-  perl -pi -e 'print "프로젝트 고유 줄\n" if $. == 1' "$p/docs/CONVENTIONS.md" # 하네스는 끝에, 프로젝트는 앞에 고친다
+  perl -pi -e 'print "프로젝트 고유 줄\n" if $. == 1' "$p/$plan" # 하네스는 끝에, 프로젝트는 앞에 고친다
+  echo "프로젝트가 하네스 문서에 쓴 줄" >>"$p/$owned"
   (cd "$p" && "${g[@]}" commit -q -am project)
-  echo "하네스 새 줄" >>"$h/template/docs/CONVENTIONS.md"
+  echo "하네스 새 줄" >>"$h/template/$plan"
+  echo "하네스 문서 새 줄" >>"$h/template/$owned"
   jq '.version = "99.0.0"' "$h/.claude-plugin/plugin.json" >"$h/plugin.json" && mv "$h/plugin.json" "$h/.claude-plugin/plugin.json"
   (cd "$h" && "${g[@]}" commit -q -am v2)
-  "$h/scripts/update-app.sh" "$p"
-  grep -q '프로젝트 고유 줄' "$p/docs/CONVENTIONS.md" && grep -q '하네스 새 줄' "$p/docs/CONVENTIONS.md" ||
+  out=$("$h/scripts/update-app.sh" "$p") || { echo "FAIL: 업데이트가 실패했습니다." >&2; exit 1; }
+  grep -q '프로젝트 고유 줄' "$p/$plan" && grep -q '하네스 새 줄' "$p/$plan" ||
     { echo "FAIL: 업데이트 뒤 프로젝트 줄 또는 하네스 줄이 없습니다." >&2; exit 1; }
+  grep -q '하네스 문서 새 줄' "$p/$owned" && ! grep -q '프로젝트가 하네스 문서에 쓴 줄' "$p/$owned" &&
+    (cd "$p/docs/harness" && shasum -a 256 -c --quiet CHECKSUMS) && grep -q "^  $owned\$" <<<"$out" ||
+    { echo "FAIL: docs/harness 가 새 생성본으로 바뀌지 않았거나 프로젝트 수정이 옮길 대상으로 나오지 않았습니다:" >&2; echo "$out" >&2; exit 1; }
   grep -qx 'version=99.0.0' "$p/.harness-version" && grep -qx 'platform=macos' "$p/.harness-version" ||
     { echo "FAIL: .harness-version 이 새 버전·입력으로 바뀌지 않았습니다." >&2; exit 1; }
   [[ -z $(git -C "$p" diff --name-only --diff-filter=U) ]] || { echo "FAIL: 업데이트에 충돌이 남았습니다." >&2; exit 1; }
 
   # 충돌: 프로젝트와 하네스(v3)가 같은 줄을 다르게 고치면 성공으로 끝나되 그 파일이 충돌로 남고 목록에 나와야 한다.
   (cd "$p" && git add -A && "${g[@]}" commit -q -m harness-update)
-  perl -pi -e 's/^하네스 새 줄$/프로젝트가 고친 줄/' "$p/docs/CONVENTIONS.md"
+  perl -pi -e 's/^하네스 새 줄$/프로젝트가 고친 줄/' "$p/$plan"
   (cd "$p" && "${g[@]}" commit -q -am project-edit)
-  perl -pi -e 's/^하네스 새 줄$/하네스가 다시 고친 줄/' "$h/template/docs/CONVENTIONS.md"
+  perl -pi -e 's/^하네스 새 줄$/하네스가 다시 고친 줄/' "$h/template/$plan"
   jq '.version = "99.0.1"' "$h/.claude-plugin/plugin.json" >"$h/plugin.json" && mv "$h/plugin.json" "$h/.claude-plugin/plugin.json"
   (cd "$h" && "${g[@]}" commit -q -am v3)
-  local out
   out=$("$h/scripts/update-app.sh" "$p") || { echo "FAIL: 충돌이 있는 업데이트가 실패 코드로 끝났습니다." >&2; exit 1; }
-  grep -q '^  docs/CONVENTIONS.md$' <<<"$out" && [[ $(git -C "$p" diff --name-only --diff-filter=U) == docs/CONVENTIONS.md ]] ||
+  grep -q "^  $plan\$" <<<"$out" && [[ $(git -C "$p" diff --name-only --diff-filter=U) == "$plan" ]] ||
     { echo "FAIL: 충돌 파일이 목록에 없거나 충돌로 남지 않았습니다:" >&2; echo "$out" >&2; exit 1; }
   grep -qx 'version=99.0.1' "$p/.harness-version" || { echo "FAIL: 충돌이 있을 때 .harness-version 이 갱신되지 않았습니다." >&2; exit 1; }
 
