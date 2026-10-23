@@ -74,13 +74,16 @@ block no-network $((!allow_network))
 block ios $([[ "$platform" == ios ]] && echo 1 || echo 0)
 block macos $([[ "$platform" == macos ]] && echo 1 || echo 0)
 
-# 어느 하네스 버전에서 만들었는지 남긴다 (나중에 하네스 개선분을 가져올 때 비교 기준)
-if git -C "$root" rev-parse -q --verify HEAD >/dev/null 2>&1; then
-  version=$(git -C "$root" rev-parse HEAD)
-else
-  version=$(jq -r '.version' "$root/.claude-plugin/plugin.json")
-fi
-printf '%s\n' "$version" >.harness-version
+# 어느 하네스 버전·입력으로 만들었는지 남긴다. update-app.sh 가 같은 입력으로 다시 만들어 비교 기준으로 쓴다.
+{
+  echo "# ios-harness 로 만들 때의 버전과 입력. /ios-harness:update-harness 가 읽고 갱신한다. 직접 고치지 않는다."
+  echo "version=$(jq -r '.version' "$root/.claude-plugin/plugin.json")"
+  if git -C "$root" rev-parse -q --verify HEAD >/dev/null 2>&1; then
+    echo "commit=$(git -C "$root" rev-parse HEAD)"
+  fi
+  printf '%s\n' "name=$name" "display_name=$display" "bundle_id=$bundle" "team=$team" \
+    "platform=$platform" "os_version=$os_version" "allow_network=$allow_network"
+} >.harness-version
 
 left=$(grep -rnI --exclude-dir=.git -E '__(APP_NAME|DISPLAY_NAME|BUNDLE_ID|TEAM_ID|OS_VERSION)__|(>>>|<<<) (no-network|ios|macos)([^A-Za-z0-9-]|$)' . || true)
 [[ -z "$left" ]] || fail "치환되지 않은 토큰이 남았습니다:

@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "ios-harness",
-      "description": "새 iOS·macOS 앱 프로젝트를 하네스·CI 까지 갖춰 생성하는 /ios-harness:new-ios-app 스킬",
+      "description": "새 iOS·macOS 앱 프로젝트를 하네스·CI 까지 갖춰 생성(/ios-harness:new-ios-app)하고, 하네스 변경을 만든 프로젝트에 가져온다(/ios-harness:update-harness)",
       "source": "./",
       "category": "development"
     }
