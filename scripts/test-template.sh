@@ -1,6 +1,6 @@
 #!/bin/bash
 # 템플릿이 깨지지 않았는지 확인한다. 로컬과 CI(.github/workflows/template.yml)가 같이 쓴다.
-#   0. 하네스 업데이트: 사본 하네스로 만든 프로젝트에 다음 버전 변경을 update-app.sh 로 가져온다.
+#   0. 하네스 업데이트: 사본 하네스로 만든 프로젝트에 다음 버전 변경을 update-app.sh 로 가져온다 (충돌 없음·충돌·옛 한 줄 형식).
 #   1. iOS 기본 변형(네트워크 금지): 생성 → no_network 규칙 확인 → make lint → make test.
 #   2. macOS 네트워크 허용 변형: 생성 → no_network 규칙·iOS 블록이 빠졌는지 확인 → make lint → make test.
 #   3. 나머지 조합(iOS 네트워크 허용, macOS 네트워크 금지): 생성만 하고 no_network 규칙 유무를 본다.
@@ -18,7 +18,8 @@ check() { # <디렉터리>: SwiftFormat·doc-refs 처럼 git 루트를 기준으
 }
 
 # 하네스 업데이트: 하네스 사본(v1)으로 만든 프로젝트를 고친 뒤, 사본을 고쳐(v2) update-app.sh 로 가져온다.
-# 프로젝트에서 고친 줄과 하네스에서 고친 줄이 모두 남고 충돌이 없어야 한다.
+# 프로젝트에서 고친 줄과 하네스에서 고친 줄이 모두 남고 충돌이 없어야 한다. 같은 줄을 서로 고치면(v3) 성공으로 끝나되
+# 그 파일이 충돌로 남고 목록에 나와야 한다.
 update_check() {
   local h="$work/harness" p="$work/Updated"
   local g=(git -c user.name=test -c user.email=test@example.com)
