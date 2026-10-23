@@ -49,7 +49,7 @@ claude plugin marketplace update ios-harness && claude plugin update ios-harness
 scripts/new-app.sh --dest ../my-app-ios --name MyApp --bundle-id com.me.myapp [--platform ios|macos] [--display-name 내앱] [--team ABCDE12345] [--os-version 26.0] [--allow-network]
 scripts/publish.sh ../my-app-ios me/my-app-ios private    # 첫 커밋 · 레포 생성 · 설정 · git 훅
 scripts/setup-github.sh me/my-app-ios                     # 레포 설정만 다시
-scripts/update-app.sh ../my-app-ios [--from <ref>]         # 하네스 변경을 3-way 로 합치기 (커밋하지 않음)
+scripts/update-app.sh ../my-app-ios [--from <ref>] [new-app.sh 입력 인자…]   # 하네스 변경을 3-way 로 합치기 (커밋하지 않음). 0.6.0 전의 한 줄 .harness-version 이면 --name --bundle-id --os-version 등을 준다
 ```
 `--ios` 는 `--os-version` 의 이전 이름으로 계속 받는다. `new-app.sh` 로 만든 문서에는 `<!-- new-ios-app: … -->` 자리 표시가 남는다. 스킬을 쓰면 Claude 가 채운다.
 
