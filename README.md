@@ -34,11 +34,22 @@
 3. 실기기 실행·배포 전에 `Env.developmentTeam` 에 팀 ID 입력
 4. (선택) 팀 구현(CONVENTIONS §6)을 Agent Teams 로 하려면 Claude Code 사용자 설정에 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. 없으면 서브에이전트로 대신한다
 
+### 하네스 업데이트 가져오기
+만든 프로젝트는 템플릿의 사본이라 플러그인을 업데이트해도 저절로 바뀌지 않는다. 플러그인을 업데이트한 뒤 프로젝트에서 가져온다.
+```text
+claude plugin marketplace update ios-harness && claude plugin update ios-harness@ios-harness   # 터미널, 끝나면 Claude Code 재시작
+/ios-harness:update-harness                                                                    # 프로젝트 디렉터리의 Claude Code 안에서
+```
+`.harness-version` 에 적힌 버전·입력으로 만들 때의 템플릿과 지금 템플릿을 각각 만들어 **그 차이만** 프로젝트에 3-way 로 합친다. 프로젝트에서 채운 제품 내용과 직접 고친 규칙은 그대로 남고, 하네스 변경과 같은 곳을 고친 파일만 충돌로 나와 Claude 가 정리안을 내고 확인받는다. 새로 생긴 자리 표시를 채우고 `make lint && make test` 까지 돈 뒤 `chore/harness-<버전>` 브랜치에 커밋하지 않은 채로 둔다 (커밋·PR 은 프로젝트의 `/micro-commit`·`/pr`).
+
+충돌을 줄이려면 프로젝트에서 하네스 규칙 줄을 고쳐 쓰기보다 줄을 더하는 편이 낫다. 0.6.0 전에 만든 프로젝트는 `.harness-version` 이 한 줄이라 스킬이 앱 이름·번들 ID 등을 프로젝트에서 찾아 확인받는다.
+
 ### 스크립트만 쓰기
 ```bash
 scripts/new-app.sh --dest ../my-app-ios --name MyApp --bundle-id com.me.myapp [--platform ios|macos] [--display-name 내앱] [--team ABCDE12345] [--os-version 26.0] [--allow-network]
 scripts/publish.sh ../my-app-ios me/my-app-ios private    # 첫 커밋 · 레포 생성 · 설정 · git 훅
 scripts/setup-github.sh me/my-app-ios                     # 레포 설정만 다시
+scripts/update-app.sh ../my-app-ios [--from <ref>] [--name … --bundle-id … --os-version …]   # 하네스 변경을 3-way 로 합치기 (커밋하지 않음). 앱 입력은 0.6.0 전의 한 줄 .harness-version 일 때만 준다 (--platform --display-name --team --allow-network 도 받는다)
 ```
 `--ios` 는 `--os-version` 의 이전 이름으로 계속 받는다. `new-app.sh` 로 만든 문서에는 `<!-- new-ios-app: … -->` 자리 표시가 남는다. 스킬을 쓰면 Claude 가 채운다.
 
@@ -46,11 +57,13 @@ scripts/setup-github.sh me/my-app-ios                     # 레포 설정만 다
 ```
 .claude-plugin/        plugin.json · marketplace.json (이 레포가 곧 마켓플레이스이자 플러그인)
 skills/new-ios-app/    생성 스킬
-scripts/               new-app.sh · publish.sh · setup-github.sh · test-template.sh
+skills/update-harness/ 만든 프로젝트에 하네스 변경을 가져오는 스킬
+scripts/               new-app.sh · publish.sh · setup-github.sh · update-app.sh · test-template.sh
 template/              생성될 프로젝트 원본 (토큰: __APP_NAME__ __DISPLAY_NAME__ __BUNDLE_ID__ __TEAM_ID__ __OS_VERSION__,
                        플랫폼 블록: >>> ios · >>> macos)
 .github/workflows/     template.yml — 템플릿으로 iOS·macOS 샘플 앱을 만들어 lint · 빌드 · 테스트
                        claude-review.yml — PR 을 Claude 가 리뷰 (/pr 로컬 리뷰와 같은 기준)
+                       tag-version.yml — 버전이 바뀌면 ios-harness--v<version> 태그 (update-app.sh 의 비교 기준)
 ```
 
 ## 라이선스

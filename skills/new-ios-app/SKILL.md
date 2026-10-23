@@ -86,3 +86,4 @@ cd <위치> && git init -q -b main && mise install && make lint && make test
   3. **팀 ID**: 비웠다면 실기기 실행·배포 전에 `Tuist/ProjectDescriptionHelpers/Project+Templates.swift` 의 `Env.developmentTeam` 에 입력.
   4. 새 프로젝트 디렉터리에서 Claude Code 를 다시 열어야 프로젝트 스킬(`/verify` 등)과 훅이 로드된다. `make generate` 로 Xcode 를 연다.
 - 첫 작업 제안: `chore/…` 브랜치에서 작은 변경으로 `/pr` 을 한 번 돌려 CI·Claude Review·룰셋이 동작하는지 확인.
+- 나중에 하네스가 업데이트되면 플러그인을 업데이트한 뒤 프로젝트에서 `/ios-harness:update-harness` 로 가져온다 (`.harness-version` 이 비교 기준이라 지우지 않는다).
