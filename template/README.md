@@ -25,9 +25,11 @@ make lint        # 포맷·아키텍처 규칙 검사 (make format 으로 자동
 ```
 
 ## 문서
-- [아키텍처](docs/ARCHITECTURE.md)
-- [개발 규칙: 해야 할 것 / 하지 말아야 할 것](docs/CONVENTIONS.md)
+- [제품 결정: 약속·기술 결정·프로젝트 규칙](docs/PRODUCT.md)
+- [아키텍처](docs/harness/ARCHITECTURE.md)
+- [개발 규칙: 해야 할 것 / 하지 말아야 할 것](docs/harness/CONVENTIONS.md)
 - [개발 계획과 로드맵](docs/DEVELOPMENT_PLAN.md)
+- [작업 진행 방식과 완료 기준](docs/harness/WORKFLOW.md)
 - [Claude Code 작업 안내](CLAUDE.md)
 
 이 프로젝트는 [ios-harness](https://github.com/zopandagom/ios-harness) 템플릿으로 만들었다 (`.harness-version`). 하네스 변경은 플러그인을 업데이트한 뒤 `/ios-harness:update-harness` 로 가져온다.

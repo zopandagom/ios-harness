@@ -42,7 +42,7 @@ git diff --stat; git diff            # 새 파일은 Read 로 내용 확인
 | `.mise.toml`, `.gitignore` | `build` / `chore` |
 
 - 순서: 이동(`R100`) → 기능 변경(`template`·`scripts`·`skills`) → `ci` → `docs` → `chore` → 버전.
-- 하나의 기능을 이루는 변경은 경로가 달라도 같은 커밋이다. 예: Tuist 헬퍼 인자 추가 + 그것을 설명하는 `template/docs/ARCHITECTURE.md`·`template/CLAUDE.md` 줄. 토큰을 추가하면 `new-app.sh` 의 치환·잔여 검사와 그 토큰을 쓰는 템플릿 파일이 한 커밋이다. 자리 표시를 추가·삭제하면 `skills/new-ios-app/SKILL.md` §3 표가 같은 커밋이다.
+- 하나의 기능을 이루는 변경은 경로가 달라도 같은 커밋이다. 예: Tuist 헬퍼 인자 추가 + 그것을 설명하는 `template/docs/harness/ARCHITECTURE.md`·`template/docs/harness/GUIDE.md` 줄. 토큰을 추가하면 `new-app.sh` 의 치환·잔여 검사와 그 토큰을 쓰는 템플릿 파일이 한 커밋이다. 자리 표시를 추가·삭제하면 `skills/new-ios-app/SKILL.md` §3 표가 같은 커밋이다.
 - 목적이 둘이면 나눈다 (요약에 "그리고"가 들어가면 분리). 같은 문서 안에서도 목적이 다른 줄은 hunk 단위로 나눈다 (아래 "부분 스테이징").
 - README 의 "만들어지는 것"·"구조" 표를 기능에 맞춘 줄은 그 기능 커밋에 넣어도 되고 `docs` 로 따로 둬도 된다. 기능 없이 README 만 고친 것은 `docs`.
 - 커밋하기 전에 계획을 `<type>: <요약>` 목록으로 적고, 항목마다 목적이 하나인지 확인한 뒤 시작한다.

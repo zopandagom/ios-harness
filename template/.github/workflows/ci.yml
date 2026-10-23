@@ -136,11 +136,26 @@ jobs:
           path: build/TestResults.xcresult
           retention-days: 7
 
+  # docs/harness 는 하네스 소유라 고치지 않는다 (CONVENTIONS §6 "하네스 문서"). 문서만 바뀐 변경도 검사해야 하므로 changes 와 상관없이 돈다.
+  harness-docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: docs/harness 가 생성·업데이트한 그대로인지
+        run: |
+          cd docs/harness
+          sha256sum -c --quiet CHECKSUMS && [[ "$(find . -type f -name '*.md' | LC_ALL=C sort)" == "$(awk '{print $2}' CHECKSUMS)" ]] || { echo "::error::docs/harness 는 하네스 소유라 고치지 않습니다. 이 앱의 규칙은 docs/PRODUCT.md 에 씁니다."; exit 1; }
+
   # main 룰셋의 필수 체크는 이 잡 하나다. 잡 이름이 바뀌거나 잡이 늘어도 룰셋을 고치지 않게 결과를 여기로 모은다.
   # 앞 잡이 하나라도 실패·취소되면 실패하고, 건너뛴 것(문서·하네스만 바뀐 변경)은 통과로 본다.
   # always() 를 쓰는 이유: 취소된 run 에서 이 잡이 건너뛰어지면 필수 체크가 통과로 처리된다.
   ci-result:
-    needs: [changes, lint, test]
+    needs: [changes, lint, test, harness-docs]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -149,5 +164,5 @@ jobs:
       - env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          echo "changes·lint·test: $RESULTS"
+          echo "changes·lint·test·harness-docs: $RESULTS"
           [[ " $RESULTS " != *" failure "* && " $RESULTS " != *" cancelled "* ]]

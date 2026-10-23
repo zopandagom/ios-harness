@@ -37,21 +37,30 @@ argument-hint: "[--from <ref>]"
 ```bash
 <harness>/scripts/update-app.sh . [--from <ref>] [2 의 인자…]
 ```
-- "하네스 변경 없음"이면 `.harness-version` 만 바뀐다. 7 로 간다.
+- "하네스 변경 없음"이면 `.harness-version` 만 바뀐다. 8 로 간다.
 - 실패하면 메시지를 그대로 보여 주고 멈춘다.
+- `docs/harness/`(하네스 소유)는 합치지 않고 새 생성본으로 바뀌므로 충돌로 나오지 않는다. 프로젝트가 고쳤던 내용은 5 에서 옮긴다.
 
 ## 4. 충돌 정리
 출력의 "충돌" 파일마다 하네스가 바꾼 것(`git diff refs/harness/base refs/harness/target -- <파일>`)과 프로젝트가 바꾼 것(`git diff refs/harness/base HEAD -- <파일>`)을 함께 보고 둘 다 살린다.
 - 하네스 쪽에서 가져오는 것: 규칙·절차·스크립트·설정의 변경.
-- 프로젝트 쪽에서 지키는 것: 제품 내용(앱 설명, 핵심 약속, MVP·로드맵), 프로젝트가 더한 규칙·lint 규칙·스킬 단계, 지운 기능.
+- 프로젝트 쪽에서 지키는 것: 제품 내용(앱 설명, 핵심 약속, MVP·로드맵), 프로젝트가 더한 lint 규칙·스킬 단계, 지운 기능.
+- 프로젝트가 문서에 더한 규칙(예: 0.7.0 전 CLAUDE.md "반드시 지킬 것"이나 DEVELOPMENT_PLAN 완료 기준에 더한 줄)이 하네스 쪽에서 `docs/harness/` 로 옮겨져 충돌하면, 그 규칙은 `docs/PRODUCT.md` §3 으로 옮기고 충돌은 하네스 쪽으로 정리한다.
 - 같은 줄을 서로 다른 뜻으로 고쳤거나(예: 프로젝트가 일부러 바꾼 규칙을 하네스도 바꿈) 어느 쪽이 맞는지 정할 수 없으면, 두 내용을 나란히 보여 주고 사용자에게 묻는다.
 - 프로젝트가 지운 파일을 하네스가 고쳤으면(modify/delete) 기본은 지운 채로 두고 보고한다.
 - 정리한 파일은 `git add` 한다. 끝나면 `git diff --name-only --diff-filter=U` 와 `grep -rn '^<<<<<<< \|^>>>>>>> ' .` 결과가 비어 있어야 한다.
 
-## 5. 새 자리 표시 채우기
-출력의 "하네스가 새로 넣은 자리 표시"가 있으면 `<!-- new-ios-app: … -->` 지시를 `/ios-harness:new-ios-app` 스킬 §3 처럼 채운다. 근거는 프로젝트에 이미 있는 문서(CLAUDE.md 첫 단락, DEVELOPMENT_PLAN, ARCHITECTURE §4, CONVENTIONS §4)뿐이고, 없는 내용은 지어내지 않고 "미정"으로 둔다.
+## 5. 하네스 소유로 바뀐 파일의 프로젝트 수정 옮기기
+출력의 "프로젝트가 고치거나 더했는데 하네스 소유이거나 하네스에서 없어진 파일"이 있으면, 파일마다 프로젝트가 고친 내용(`git diff refs/harness/base HEAD -- <파일>`)을 프로젝트 문서로 옮긴다. 하네스 문서(`docs/harness/`)는 고치지 않는다 (편집 훅이 막는다).
+- 0.7.0 전에 만든 프로젝트는 옛 `docs/CONVENTIONS.md`·`docs/ARCHITECTURE.md` 가 여기에 나온다: CONVENTIONS §4 제품 약속 행 → `docs/PRODUCT.md` §1, ARCHITECTURE §4 기술 결정 행 → §2, 그 밖에 프로젝트가 더하거나 바꾼 규칙 → §3. 옮긴 곳의 자리 표시 주석은 지운다.
+- 하네스 규칙을 고친 것(더한 것이 아니라 바꾼 것)이면 §3 에 옮기기 전에 사용자에게 보인다. 하네스 규칙과 부딪히면 §3 에 쓰지 않고 "하네스에 반영할 것"으로 보고한다.
+- 옛 파일이 작업 트리에 남아 있으면(modify/delete 충돌) 옮긴 뒤 `git rm` 한다.
+- 문서가 아닌 파일(Swift·설정 등)이 나오면 옮기지 않고 4 의 충돌로 처리한다 (하네스가 지우거나 옮긴 템플릿 파일을 프로젝트가 고친 경우다).
 
-## 6. 검증
+## 6. 새 자리 표시 채우기
+출력의 "하네스가 새로 넣은 자리 표시" 중 5 에서 채우지 않은 것은 `<!-- new-ios-app: … -->` 지시를 `/ios-harness:new-ios-app` 스킬 §3 처럼 채운다. 근거는 프로젝트에 이미 있는 문서(CLAUDE.md 첫 단락, DEVELOPMENT_PLAN, PRODUCT)뿐이고, 없는 내용은 지어내지 않고 "미정"으로 둔다.
+
+## 7. 검증
 Bash `run_in_background: true`, `timeout: 1200000` 으로 실행한다.
 ```bash
 mise install && make lint && make test
@@ -59,11 +68,12 @@ mise install && make lint && make test
 - `make lint` 가 실패하면 `make format` 후 다시 돌린다. 그래도 실패하면 원인이 하네스 변경인지 프로젝트 코드인지 나눠 보고하고 멈춘다 (프로젝트 코드는 고치지 않는다).
 - `.githooks` 가 바뀌었으면 `make test-hooks` 도 포함된다 (`make test`).
 
-## 7. 정리와 보고
+## 8. 정리와 보고
 - `git update-ref -d refs/harness/base && git update-ref -d refs/harness/target`
 - 아래를 한 블록으로 보고한다:
   - 가져온 버전 (`<from> → <버전>`), 바뀐 파일 수
   - 충돌 파일과 정리 방식 (파일마다 한 줄), 사용자에게 물어 정한 것
+  - 옮긴 프로젝트 수정 (옛 파일 → PRODUCT 절), 하네스에 반영할 것으로 보고한 것
   - 채운 자리 표시
   - 검증 결과 (`lint ✓ · build ✓ · test ✓ (N개)`)
   - 바뀐 것 중 사용자가 직접 할 일이 있으면 (예: 새 시크릿, 워크플로 권한, 사용자 설정 환경 변수)

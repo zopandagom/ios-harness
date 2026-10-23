@@ -50,14 +50,15 @@ argument-hint: "[앱 설명]"
 | `CLAUDE.md` 첫 단락 | 앱 설명 한 줄 + **핵심 약속**(굵게) + 예외가 있으면 한 줄 |
 | `README.md` | 설명·핵심 약속, MVP 기능 목록, 쓸 Apple 프레임워크 |
 | `docs/DEVELOPMENT_PLAN.md` | 목표, MVP 기능 표, 로드맵(사용자가 말한 것만), 위험 |
-| `docs/ARCHITECTURE.md` §4 | 설명에서 정해진 기술 결정(저장소, 프레임워크, 외부 서비스 경계) |
-| `docs/CONVENTIONS.md` §4 | 핵심 약속을 ✅/❌ 행으로. lint 로 막을 수 있는 것은 "강제" 열에 규칙 이름 |
+| `docs/PRODUCT.md` §1 | 핵심 약속을 ✅/❌ 행으로. lint 로 막을 수 있는 것은 "강제" 열에 규칙 이름 |
+| `docs/PRODUCT.md` §2 | 설명에서 정해진 기술 결정(저장소, 프레임워크, 외부 서비스 경계) |
 
 그다음 일관성을 맞춘다.
 - 쓸 부수효과 프레임워크(권한·저장·결제·알림·위치 등)가 `.swiftlint.yml` 의 `system_framework_only_in_impl` 목록에 없으면 추가하고, 쓰지 않을 것이 확실한 항목은 그대로 둔다(목록에 있어도 비용이 없다).
-- 핵심 약속을 바꾸는 예외(예: 위치 좌표만 Apple 지도 서비스로 보냄)가 있으면 CLAUDE.md·ARCHITECTURE §4·CONVENTIONS §4 에 같은 말로 적는다.
-- macOS 면 배포 경로를 ARCHITECTURE §4 에 한 행으로 적는다: Mac App Store(App Sandbox entitlements 필요) 또는 Developer ID 서명·공증(샌드박스 밖 동작 가능, 예: 다른 프로세스 실행). 설명에 없으면 "미정".
+- 핵심 약속을 바꾸는 예외(예: 위치 좌표만 Apple 지도 서비스로 보냄)가 있으면 CLAUDE.md·PRODUCT §1·§2 에 같은 말로 적는다.
+- macOS 면 배포 경로를 PRODUCT §2 에 한 행으로 적는다: Mac App Store(App Sandbox entitlements 필요) 또는 Developer ID 서명·공증(샌드박스 밖 동작 가능, 예: 다른 프로세스 실행). 설명에 없으면 "미정".
 - 끝나면 `grep -rn 'new-ios-app:' <위치>` 결과가 비어 있어야 한다.
+- `docs/harness/` 는 하네스 소유라 고치지 않는다 (자리 표시도 없다. 생성 시 `CHECKSUMS` 가 만들어지고 `make lint` 가 확인한다).
 
 ## 4. 검증
 Bash `run_in_background: true`, `timeout: 1200000` 으로 실행한다 (클린 빌드가 10분을 넘을 수 있다).

@@ -32,7 +32,7 @@ line_length:
 identifier_name:
   excluded: [id, x, y]
 
-# ── 아키텍처 규칙 (docs/ARCHITECTURE.md) ─────────────────────────────
+# ── 아키텍처 규칙 (docs/harness/ARCHITECTURE.md) ─────────────────────────────
 custom_rules:
   impl_import_only_in_app:
     name: "Impl 은 App 에서만 import"
@@ -48,7 +48,7 @@ custom_rules:
     message: "Fake 가 든 Testing 모듈은 Tests 와 Example 타깃에서만 import 합니다."
     severity: error
 
-  # 권한·저장·결제·알림처럼 부수효과가 있는 Apple 프레임워크. 앱에 맞게 목록을 늘리거나 줄인다 (docs/ARCHITECTURE.md §2).
+  # 권한·저장·결제·알림처럼 부수효과가 있는 Apple 프레임워크. 앱에 맞게 목록을 늘리거나 줄인다 (docs/harness/ARCHITECTURE.md §2).
   system_framework_only_in_impl:
     name: "부수효과 프레임워크는 Client Impl 에서만"
     included: "Projects/(App|Features|Shared|Clients/[^/]+/(Interface|Testing))/"
@@ -82,6 +82,6 @@ custom_rules:
     name: "네트워크 호출 금지"
     included: "Projects/"
     regex: "\\b(URLSession|URLRequest|NWConnection)\\b"
-    message: "서버 없음이 이 앱의 결정입니다 (docs/ARCHITECTURE.md §4). 네트워크 코드는 사전 합의 후 별도 Client 로 추가합니다."
+    message: "서버 없음이 이 앱의 결정입니다 (docs/PRODUCT.md §2). 네트워크 코드는 사전 합의 후 별도 Client 로 추가합니다."
     severity: error
   # <<< no-network

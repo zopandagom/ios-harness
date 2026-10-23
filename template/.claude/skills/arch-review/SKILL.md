@@ -1,6 +1,6 @@
 ---
 name: arch-review
-description: __APP_NAME__ 변경분을 docs/ARCHITECTURE.md·docs/CONVENTIONS.md 기준으로 읽기 전용 리뷰한다 (단방향 MV, 모듈 경계, Swift 6 동시성, 제품 약속, 테스트 누락, 문서 정합성, 하네스). 구현을 마치고 /verify 가 통과한 뒤 커밋 전에, 또는 사용자가 "리뷰", "검토"를 요청할 때 사용한다. 인자로 비교 기준(예: origin/main, HEAD~3)과 그 뒤에 작업 범위(In/Out·위협 모델)를 줄 수 있고, 비교 기준이 없으면 커밋되지 않은 변경 + origin/main 이후 커밋 전체를 본다.
+description: __APP_NAME__ 변경분을 docs/harness/ARCHITECTURE.md·docs/harness/CONVENTIONS.md·docs/PRODUCT.md 기준으로 읽기 전용 리뷰한다 (단방향 MV, 모듈 경계, Swift 6 동시성, 제품 약속, 테스트 누락, 문서 정합성, 하네스). 구현을 마치고 /verify 가 통과한 뒤 커밋 전에, 또는 사용자가 "리뷰", "검토"를 요청할 때 사용한다. 인자로 비교 기준(예: origin/main, HEAD~3)과 그 뒤에 작업 범위(In/Out·위협 모델)를 줄 수 있고, 비교 기준이 없으면 커밋되지 않은 변경 + origin/main 이후 커밋 전체를 본다.
 argument-hint: "[base-ref] [작업 범위]"
 context: fork
 agent: Explore
@@ -12,7 +12,7 @@ agent: Explore
 
 ## 1. 기준과 변경분 읽기
 
-1. 규칙 문서를 먼저 읽는다: `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/CONVENTIONS.md`. 무엇을 어떤 심각도로 지적할지는 CONVENTIONS §5 "리뷰 기준"을 따른다.
+1. 규칙 문서를 먼저 읽는다: `CLAUDE.md`(가 불러오는 `docs/harness/GUIDE.md` 포함), `docs/harness/ARCHITECTURE.md`, `docs/harness/CONVENTIONS.md`, `docs/PRODUCT.md`. 무엇을 어떤 심각도로 지적할지는 CONVENTIONS §5 "리뷰 기준"을 따른다.
 2. 변경분을 모은다. 기준: `$ARGUMENTS` 의 첫 단어가 `git rev-parse --verify -q "<첫 단어>^{commit}"` 로 커밋을 가리키면 그것, 아니면(인자가 없거나 범위만 준 경우) `origin/main` (CONVENTIONS §5 "리뷰 기준"의 범위. 최신 origin/main 이 필요하면 부르는 쪽이 `git fetch` 한다. `/pr` 은 §1 에서 한다). 기준으로 쓰지 않은 나머지 인자 전체가 작업 범위다 (CONVENTIONS §5 "리뷰 기준"의 범위. 없으면 Out 이 없다).
    ```bash
    git diff --stat <base>...HEAD; git diff <base>...HEAD   # 커밋된 변경
@@ -26,7 +26,7 @@ agent: Explore
 2. **Swift 6 동시성**: `@MainActor` 밖에서 Model 상태 변경, 비 Sendable 값(프레임워크 객체, `UIImage` 등)이 actor 경계를 넘음, `@unchecked Sendable`·`nonisolated(unsafe)` 남용, 무거운 작업이 메인에서 실행.
 3. **단방향 MV**: `private(set)` 이 아닌 상태, View 가 부수효과를 직접 실행, 이벤트 메서드 이름이 "무슨 일이 일어났는가" 형식이 아님, Model 이 다른 Model 을 참조.
 4. **모듈 경계**: 의존 규칙 표 위반, Interface 에 부수효과 프레임워크 타입 노출(CoreGraphics·ImageIO 같은 부수효과 없는 타입은 허용), 매니페스트에서 템플릿 우회·빌드 설정 덮어쓰기.
-5. **제품 약속**: docs/CONVENTIONS.md §4 와 ARCHITECTURE §4 의 결정을 어기는 코드 (허용되지 않은 네트워크·외부 전송, 민감 정보 로그, 합의 없는 서드파티 SDK).
+5. **제품 약속**: docs/PRODUCT.md §1 약속과 §2 결정을 어기는 코드, §3 프로젝트 규칙 위반 (허용되지 않은 네트워크·외부 전송, 민감 정보 로그, 합의 없는 서드파티 SDK).
 6. **테스트**: CONVENTIONS §3 이 요구하는 테스트의 누락, 실제 기기 데이터·권한에 의존하는 테스트.
 7. **문서 정합성**: CONVENTIONS §5 "리뷰 기준"의 문서 불일치. 이번 변경과 관련된 문서 줄은 문서 범위를 바뀐 타입·함수·동작 이름과 바뀐 규칙의 핵심 문구로 grep 해서 찾는다.
 8. **하네스·빌드 설정**(`.claude/**`, `.githooks/**`, `.github/**`, `Makefile`, `Tuist/`, `.mise.toml`): 스크립트 정확성, CONVENTIONS §5 "리뷰 기준"의 fail-open·함께 지킬 수 없는 규칙.

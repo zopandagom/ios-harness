@@ -7,6 +7,7 @@
 # 방법: 만들 때의 하네스(--from, 없으면 commit, 그것도 없으면 태그 ios-harness--v<version>)와 이 하네스로
 #   같은 입력의 프로젝트를 각각 만들고, 그 차이를 프로젝트에 3-way 로 합친다 (git cherry-pick --no-commit).
 #   프로젝트에서 고친 곳과 하네스 변경이 겹치는 파일만 충돌로 남는다. 두 생성본은 refs/harness/{base,target} 에 둔다.
+#   하네스 소유 경로(docs/harness)는 합치지 않고 새 생성본으로 바꾼다.
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -126,6 +127,18 @@ git cherry-pick --quit 2>/dev/null || true
 cp "$tmp/target/.harness-version" .harness-version
 git add .harness-version
 
+# 하네스 소유 경로(docs/harness)는 합치지 않고 새 생성본으로 바꾼다. 프로젝트가 그 안이나 하네스에서 없어진 파일을
+# 고쳤던 내용은 사라지므로, 그 파일을 알려 프로젝트 문서(docs/PRODUCT.md 등)로 옮기게 한다 (옛 docs/CONVENTIONS.md 등).
+owned=docs/harness
+moved=$(git diff --name-status --diff-filter=AM refs/harness/base HEAD | while IFS=$'\t' read -r st f; do
+  if [[ "$f" == "$owned"/* ]] || { [[ $st == M ]] && ! git cat-file -e "refs/harness/target:$f" 2>/dev/null; }; then echo "$f"; fi
+done)
+if git cat-file -e "refs/harness/target:$owned" 2>/dev/null; then
+  git rm -rq --cached --ignore-unmatch -- "$owned"
+  rm -rf "$owned"
+  git checkout refs/harness/target -- "$owned"
+fi
+
 echo "하네스 $ref → $to"
 git diff --stat refs/harness/base refs/harness/target -- . ':!.harness-version' | tail -1
 conflicts=$(git diff --name-only --diff-filter=U)
@@ -137,4 +150,8 @@ else
 fi
 placeholders=$(git diff refs/harness/base refs/harness/target | grep -E '^\+\+\+ |^\+.*new-ios-app:' | grep -B1 '^+[^+]' | grep -v '^--' || true)
 [[ -z "$placeholders" ]] || { echo "하네스가 새로 넣은 자리 표시 (채워야 한다):"; sed 's/^/  /' <<<"$placeholders"; }
+[[ -z "$moved" ]] || {
+  echo "프로젝트가 고치거나 더했는데 하네스 소유이거나 하네스에서 없어진 파일 (고친 내용: git diff refs/harness/base HEAD -- <파일>. 프로젝트 문서로 옮긴다):"
+  sed 's/^/  /' <<<"$moved"
+}
 echo "하네스 변경만 보기: git diff refs/harness/base refs/harness/target"

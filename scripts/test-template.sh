@@ -1,7 +1,7 @@
 #!/bin/bash
 # 템플릿이 깨지지 않았는지 확인한다. 로컬과 CI(.github/workflows/template.yml)가 같이 쓴다.
 #   0. 하네스 업데이트: 사본 하네스로 만든 프로젝트에 다음 버전 변경을 update-app.sh 로 가져온다 (충돌 없음·충돌·옛 한 줄 형식).
-#   1. iOS 기본 변형(네트워크 금지): 생성 → no_network 규칙 확인 → make lint → make test.
+#   1. iOS 기본 변형(네트워크 금지): 생성 → no_network 규칙 확인 → make lint → make test → 하네스 문서 보호 확인.
 #   2. macOS 네트워크 허용 변형: 생성 → no_network 규칙·iOS 블록이 빠졌는지 확인 → make lint → make test.
 #   3. 나머지 조합(iOS 네트워크 허용, macOS 네트워크 금지): 생성만 하고 no_network 규칙 유무를 본다.
 #      토큰·블록 표시 잔여는 new-app.sh 가 매번 검사한다.
@@ -18,38 +18,43 @@ check() { # <디렉터리>: SwiftFormat·doc-refs 처럼 git 루트를 기준으
 }
 
 # 하네스 업데이트: 하네스 사본(v1)으로 만든 프로젝트를 고친 뒤, 사본을 고쳐(v2) update-app.sh 로 가져온다.
-# 프로젝트에서 고친 줄과 하네스에서 고친 줄이 모두 남고 충돌이 없어야 한다. 같은 줄을 서로 고치면(v3) 성공으로 끝나되
-# 그 파일이 충돌로 남고 목록에 나와야 한다.
+# 프로젝트 소유 파일(DEVELOPMENT_PLAN)은 프로젝트에서 고친 줄과 하네스에서 고친 줄이 모두 남고 충돌이 없어야 한다.
+# 하네스 소유 경로(docs/harness)는 새 생성본으로 바뀌고(CHECKSUMS 통과), 프로젝트가 고쳤던 파일은 옮길 대상으로 나와야 한다.
+# 같은 줄을 서로 고치면(v3) 성공으로 끝나되 그 파일이 충돌로 남고 목록에 나와야 한다.
 update_check() {
-  local h="$work/harness" p="$work/Updated"
+  local h="$work/harness" p="$work/Updated" plan=docs/DEVELOPMENT_PLAN.md owned=docs/harness/CONVENTIONS.md out
   local g=(git -c user.name=test -c user.email=test@example.com)
   mkdir -p "$h"
   cp -R "$root/template" "$root/scripts" "$root/.claude-plugin" "$h/"
   (cd "$h" && git init -q -b main && git add -A && "${g[@]}" commit -q -m v1)
   "$h/scripts/new-app.sh" --dest "$p" --name UpdatedApp --bundle-id com.example.updated --platform macos >/dev/null
   (cd "$p" && git init -q -b main && git add -A && "${g[@]}" commit -q -m init)
-  perl -pi -e 'print "프로젝트 고유 줄\n" if $. == 1' "$p/docs/CONVENTIONS.md" # 하네스는 끝에, 프로젝트는 앞에 고친다
+  perl -pi -e 'print "프로젝트 고유 줄\n" if $. == 1' "$p/$plan" # 하네스는 끝에, 프로젝트는 앞에 고친다
+  echo "프로젝트가 하네스 문서에 쓴 줄" >>"$p/$owned"
   (cd "$p" && "${g[@]}" commit -q -am project)
-  echo "하네스 새 줄" >>"$h/template/docs/CONVENTIONS.md"
+  echo "하네스 새 줄" >>"$h/template/$plan"
+  echo "하네스 문서 새 줄" >>"$h/template/$owned"
   jq '.version = "99.0.0"' "$h/.claude-plugin/plugin.json" >"$h/plugin.json" && mv "$h/plugin.json" "$h/.claude-plugin/plugin.json"
   (cd "$h" && "${g[@]}" commit -q -am v2)
-  "$h/scripts/update-app.sh" "$p"
-  grep -q '프로젝트 고유 줄' "$p/docs/CONVENTIONS.md" && grep -q '하네스 새 줄' "$p/docs/CONVENTIONS.md" ||
+  out=$("$h/scripts/update-app.sh" "$p") || { echo "FAIL: 업데이트가 실패했습니다." >&2; exit 1; }
+  grep -q '프로젝트 고유 줄' "$p/$plan" && grep -q '하네스 새 줄' "$p/$plan" ||
     { echo "FAIL: 업데이트 뒤 프로젝트 줄 또는 하네스 줄이 없습니다." >&2; exit 1; }
+  grep -q '하네스 문서 새 줄' "$p/$owned" && ! grep -q '프로젝트가 하네스 문서에 쓴 줄' "$p/$owned" &&
+    (cd "$p/docs/harness" && shasum -a 256 -c --quiet CHECKSUMS) && grep -q "^  $owned\$" <<<"$out" ||
+    { echo "FAIL: docs/harness 가 새 생성본으로 바뀌지 않았거나 프로젝트 수정이 옮길 대상으로 나오지 않았습니다:" >&2; echo "$out" >&2; exit 1; }
   grep -qx 'version=99.0.0' "$p/.harness-version" && grep -qx 'platform=macos' "$p/.harness-version" ||
     { echo "FAIL: .harness-version 이 새 버전·입력으로 바뀌지 않았습니다." >&2; exit 1; }
   [[ -z $(git -C "$p" diff --name-only --diff-filter=U) ]] || { echo "FAIL: 업데이트에 충돌이 남았습니다." >&2; exit 1; }
 
   # 충돌: 프로젝트와 하네스(v3)가 같은 줄을 다르게 고치면 성공으로 끝나되 그 파일이 충돌로 남고 목록에 나와야 한다.
   (cd "$p" && git add -A && "${g[@]}" commit -q -m harness-update)
-  perl -pi -e 's/^하네스 새 줄$/프로젝트가 고친 줄/' "$p/docs/CONVENTIONS.md"
+  perl -pi -e 's/^하네스 새 줄$/프로젝트가 고친 줄/' "$p/$plan"
   (cd "$p" && "${g[@]}" commit -q -am project-edit)
-  perl -pi -e 's/^하네스 새 줄$/하네스가 다시 고친 줄/' "$h/template/docs/CONVENTIONS.md"
+  perl -pi -e 's/^하네스 새 줄$/하네스가 다시 고친 줄/' "$h/template/$plan"
   jq '.version = "99.0.1"' "$h/.claude-plugin/plugin.json" >"$h/plugin.json" && mv "$h/plugin.json" "$h/.claude-plugin/plugin.json"
   (cd "$h" && "${g[@]}" commit -q -am v3)
-  local out
   out=$("$h/scripts/update-app.sh" "$p") || { echo "FAIL: 충돌이 있는 업데이트가 실패 코드로 끝났습니다." >&2; exit 1; }
-  grep -q '^  docs/CONVENTIONS.md$' <<<"$out" && [[ $(git -C "$p" diff --name-only --diff-filter=U) == docs/CONVENTIONS.md ]] ||
+  grep -q "^  $plan\$" <<<"$out" && [[ $(git -C "$p" diff --name-only --diff-filter=U) == "$plan" ]] ||
     { echo "FAIL: 충돌 파일이 목록에 없거나 충돌로 남지 않았습니다:" >&2; echo "$out" >&2; exit 1; }
   grep -qx 'version=99.0.1' "$p/.harness-version" || { echo "FAIL: 충돌이 있을 때 .harness-version 이 갱신되지 않았습니다." >&2; exit 1; }
 
@@ -74,10 +79,35 @@ update_check() {
 }
 update_check
 
+# 하네스 문서 보호: 편집 훅이 docs/harness 는 막고(exit 2) 프로젝트 문서는 통과(exit 0)시키는지,
+# make check-harness-docs 가 파일 추가·내용 수정에 실패하는지 생성본에서 본다. 확인 뒤 생성본을 되돌린다.
+harness_docs_check() {
+  local p=$1 rc
+  hook() {
+    rc=0
+    printf '{"tool_input":{"file_path":"%s"}}' "$p/$1" | CLAUDE_PROJECT_DIR="$p" "$p/.claude/hooks/protect-harness-docs.sh" 2>/dev/null || rc=$?
+    [[ $rc == "$2" ]] || { echo "FAIL: 편집 훅이 $1 에 exit $rc (기대 $2)" >&2; exit 1; }
+  }
+  hook docs/harness/CONVENTIONS.md 2
+  hook docs/PRODUCT.md 0
+  (cd "$p" && make -s check-harness-docs) || { echo "FAIL: 손대지 않은 docs/harness 가 검사에 실패했습니다." >&2; exit 1; }
+  touch "$p/docs/harness/.DS_Store" # Finder 가 만드는 파일은 git 이 무시하므로 검사도 보지 않아야 한다
+  (cd "$p" && make -s check-harness-docs) || { echo "FAIL: docs/harness 의 .DS_Store 를 더한 파일로 셌습니다." >&2; exit 1; }
+  rm "$p/docs/harness/.DS_Store"
+  echo x >"$p/docs/harness/ADDED.md"
+  ! (cd "$p" && make -s check-harness-docs >/dev/null 2>&1) || { echo "FAIL: docs/harness 에 더한 파일을 검사가 잡지 못했습니다." >&2; exit 1; }
+  rm "$p/docs/harness/ADDED.md"
+  cp "$p/docs/harness/WORKFLOW.md" "$work/WORKFLOW.md.orig"
+  echo x >>"$p/docs/harness/WORKFLOW.md"
+  ! (cd "$p" && make -s check-harness-docs >/dev/null 2>&1) || { echo "FAIL: docs/harness 내용 수정을 검사가 잡지 못했습니다." >&2; exit 1; }
+  mv "$work/WORKFLOW.md.orig" "$p/docs/harness/WORKFLOW.md"
+}
+
 "$root/scripts/new-app.sh" --dest "$work/Sample" --name SampleApp --display-name "샘플 앱" \
   --bundle-id com.example.sampleapp --os-version 26.0
 grep -q 'no_network' "$work/Sample/.swiftlint.yml" || { echo "FAIL: 기본 변형에 no_network 규칙이 없습니다." >&2; exit 1; }
 check "$work/Sample"
+harness_docs_check "$work/Sample"
 
 "$root/scripts/new-app.sh" --dest "$work/MacSample" --name MacSampleApp --bundle-id com.example.macsample \
   --platform macos --allow-network
