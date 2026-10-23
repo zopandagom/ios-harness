@@ -1,7 +1,7 @@
 #!/bin/bash
 # 템플릿이 깨지지 않았는지 확인한다. 로컬과 CI(.github/workflows/template.yml)가 같이 쓴다.
 #   0. 하네스 업데이트: 사본 하네스로 만든 프로젝트에 다음 버전 변경을 update-app.sh 로 가져온다 (충돌 없음·충돌·옛 한 줄 형식).
-#   1. iOS 기본 변형(네트워크 금지): 생성 → no_network 규칙 확인 → make lint → make test.
+#   1. iOS 기본 변형(네트워크 금지): 생성 → no_network 규칙 확인 → make lint → make test → 하네스 문서 보호 확인.
 #   2. macOS 네트워크 허용 변형: 생성 → no_network 규칙·iOS 블록이 빠졌는지 확인 → make lint → make test.
 #   3. 나머지 조합(iOS 네트워크 허용, macOS 네트워크 금지): 생성만 하고 no_network 규칙 유무를 본다.
 #      토큰·블록 표시 잔여는 new-app.sh 가 매번 검사한다.
@@ -79,10 +79,32 @@ update_check() {
 }
 update_check
 
+# 하네스 문서 보호: 편집 훅이 docs/harness 는 막고(exit 2) 프로젝트 문서는 통과(exit 0)시키는지,
+# make check-harness-docs 가 파일 추가·내용 수정에 실패하는지 생성본에서 본다. 확인 뒤 생성본을 되돌린다.
+harness_docs_check() {
+  local p=$1 rc
+  hook() {
+    rc=0
+    printf '{"tool_input":{"file_path":"%s"}}' "$p/$1" | CLAUDE_PROJECT_DIR="$p" "$p/.claude/hooks/protect-harness-docs.sh" 2>/dev/null || rc=$?
+    [[ $rc == "$2" ]] || { echo "FAIL: 편집 훅이 $1 에 exit $rc (기대 $2)" >&2; exit 1; }
+  }
+  hook docs/harness/CONVENTIONS.md 2
+  hook docs/PRODUCT.md 0
+  (cd "$p" && make -s check-harness-docs) || { echo "FAIL: 손대지 않은 docs/harness 가 검사에 실패했습니다." >&2; exit 1; }
+  echo x >"$p/docs/harness/ADDED.md"
+  ! (cd "$p" && make -s check-harness-docs >/dev/null 2>&1) || { echo "FAIL: docs/harness 에 더한 파일을 검사가 잡지 못했습니다." >&2; exit 1; }
+  rm "$p/docs/harness/ADDED.md"
+  cp "$p/docs/harness/WORKFLOW.md" "$work/WORKFLOW.md.orig"
+  echo x >>"$p/docs/harness/WORKFLOW.md"
+  ! (cd "$p" && make -s check-harness-docs >/dev/null 2>&1) || { echo "FAIL: docs/harness 내용 수정을 검사가 잡지 못했습니다." >&2; exit 1; }
+  mv "$work/WORKFLOW.md.orig" "$p/docs/harness/WORKFLOW.md"
+}
+
 "$root/scripts/new-app.sh" --dest "$work/Sample" --name SampleApp --display-name "샘플 앱" \
   --bundle-id com.example.sampleapp --os-version 26.0
 grep -q 'no_network' "$work/Sample/.swiftlint.yml" || { echo "FAIL: 기본 변형에 no_network 규칙이 없습니다." >&2; exit 1; }
 check "$work/Sample"
+harness_docs_check "$work/Sample"
 
 "$root/scripts/new-app.sh" --dest "$work/MacSample" --name MacSampleApp --bundle-id com.example.macsample \
   --platform macos --allow-network
