@@ -57,6 +57,7 @@ display=${display:-$name}
 
 cd "$proj"
 git rev-parse -q --verify HEAD >/dev/null || fail "커밋이 있는 git 레포여야 합니다: $proj"
+[[ "$(git rev-parse --show-toplevel)" == "$(pwd -P)" ]] || fail "프로젝트 디렉터리가 git 레포의 최상위여야 합니다: $proj"
 [[ -z $(git status --porcelain) ]] || fail "커밋되지 않은 변경이 있습니다. 정리한 뒤 다시 실행하세요."
 
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/update-app.XXXXXX")
