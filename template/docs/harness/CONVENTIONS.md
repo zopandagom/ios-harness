@@ -30,7 +30,7 @@
 ## 3. 테스트
 | ✅ | ❌ |
 |---|---|
-| Swift Testing(`import Testing`, `@Test("한국어 설명")`, `#expect`) | 새 테스트를 XCTest 로 작성 |
+| Swift Testing(`import Testing`, `@Test("한국어 설명")`, `#expect`). XCTest 는 Swift Testing 이 지원하지 않는 UI 테스트(`XCUIApplication`)와 성능 측정(`measure`)에만 쓴다 | 그 밖의 새 테스트를 XCTest 로 작성 |
 | Model 의 모든 public 이벤트 메서드에 테스트: Fake 주입 → 이벤트 호출 → 상태 검증 | View 를 스냅샷/UI 테스트로만 검증 |
 | Client Impl 은 순수 로직(매핑, 파싱)을 분리해 `@testable` 로 테스트. 여러 Client 결과를 받아 판단하는 규칙은 Core 순수 함수로 두고 테스트 | 실제 기기 데이터·권한 팝업에 의존하는 테스트 |
 | 기기·OS 에 따라 동작이 다른 기능(Foundation Models 등)의 테스트는 `.enabled(if:)` 로 조건부 | CI 에서 기능이 없다고 실패하는 테스트 |
